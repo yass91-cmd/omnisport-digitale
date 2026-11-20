@@ -141,10 +141,6 @@ document.addEventListener("visibilitychange",async()=>{
   if(document.hidden&&sound.playing){await sound.stop();soundButton.setAttribute("aria-pressed","false");soundButton.setAttribute("aria-label","Turn background sound on");document.querySelector("#sound-label").textContent="Sound off";}
 });
 
-const dialog=document.querySelector("#account-dialog");
-document.querySelector("[data-account]").addEventListener("click",()=>dialog.showModal());
-document.querySelectorAll("[data-close-dialog]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
-dialog.addEventListener("click",event=>{if(event.target===dialog){const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dialog.close();}});
 window.addEventListener("pagehide",()=>sound.stop());
 
 const intro=createIntroPlayer({

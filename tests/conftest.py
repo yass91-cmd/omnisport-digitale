@@ -18,6 +18,8 @@ def database(request, tmp_path):
     if request.param == "mysql":
         url = os.environ.get("OMNI_TEST_DATABASE_URL")
         if not url:
+            if os.environ.get("CI") == "true":
+                pytest.fail("CI requires OMNI_TEST_DATABASE_URL; MySQL tests must not be skipped")
             pytest.skip(
                 "Set OMNI_TEST_DATABASE_URL or run the Docker test service for MySQL checks"
             )
@@ -28,7 +30,7 @@ def database(request, tmp_path):
             )
     else:
         url = f"sqlite+pysqlite:///{(tmp_path / 'catalogue_test.sqlite').as_posix()}"
-    settings = Settings(database_url=url, _env_file=None)
+    settings = Settings(database_url=url, auth_origins=["http://testserver"], _env_file=None)
     engine = make_engine(settings)
     config = Config(str(ROOT / "alembic.ini"))
     with engine.begin() as connection:

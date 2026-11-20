@@ -306,6 +306,50 @@ svg { display: block; }
   .facilities-heading h2 { font-size: 25px; }
 }
 /* Short portrait phones keep the booking action and controls in view. */
+/* Account screens share the catalogue's colors, cards and spacing. */
+.account-shell { width: min(1120px, calc(100% - 112px)); margin: 48px auto 80px; display: grid; grid-template-columns: 1fr 440px; gap: clamp(36px, 7vw, 100px); align-items: start; }
+.account-intro { padding-top: 28px; }
+.account-intro h1 { font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; font-size: clamp(54px, 6vw, 84px); font-weight: 900; letter-spacing: -2px; line-height: 1; margin: 22px 0 24px; }
+.account-intro > p:not(.eyebrow) { color: var(--muted); max-width: 350px; line-height: 1.8; }
+.account-court { display: block; width: 100%; height: auto; margin-top: 32px; opacity: .75; border-radius: 16px; }
+.account-panel { background: rgba(27,36,23,.78); border: 1px solid var(--line); border-radius: 20px; padding: 32px; min-width: 0; }
+.account-panel h2 { margin: 0 0 12px; font-size: 30px; line-height: 1.2; letter-spacing: -.7px; overflow-wrap: anywhere; }
+.account-panel h3 { font-size: 19px; margin: 0 0 12px; }
+.account-lead, .account-email { color: var(--muted); font-size: 16px; line-height: 1.6; margin: 0 0 26px; overflow-wrap: anywhere; }
+.account-status:empty, #workspace-status:empty { display: none; }
+.auth-tabs { display: flex; gap: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 26px; }
+.auth-tabs button { flex: 1; padding: 12px 8px; min-height: 44px; background: transparent; border-radius: 8px; font-size: 15px; }
+.auth-tabs button[aria-pressed="true"] { background: var(--accent); color: #17200f; }
+.account-panel fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.account-panel label { display: block; font-size: 15px; margin: 20px 0 9px; }
+.account-panel input { width: 100%; min-height: 48px; padding: 12px 14px; color: var(--text); background: #11190f; border: 1px solid #526047; border-radius: 8px; outline: 0; }
+.account-panel input:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),.2); }
+.account-panel input:disabled { opacity: .6; }
+.password-field { display: flex; border: 1px solid #526047; border-radius: 8px; background: #11190f; }
+.password-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),.2); }
+.password-field input { min-width: 0; border: 0; background: transparent; }
+.password-field input:focus-visible { box-shadow: none; }
+.password-field button { flex: 0 0 62px; background: transparent; border-radius: 8px; font-size: 14px; color: var(--accent); }
+.field-help { margin: 10px 0 16px; font-size: 14px; color: var(--muted); line-height: 1.6; }
+.form-submit { margin-top: 28px; width: 100%; justify-content: center; }
+.form-message { border-left: 2px solid #efa99b; padding: 10px 14px; color: #f8c7bd; font-size: 15px; line-height: 1.6; margin: 22px 0; }
+.form-message.is-success { border-color: var(--accent); color: var(--accent); }
+.secondary-button { min-height: 44px; border: 1px solid var(--line); background: #293520; border-radius: 8px; padding: 11px 18px; margin-top: 16px; }
+.role-badge { display: inline-block; font-size: 14px; padding: 7px 11px; color: var(--accent); border: 1px solid #5c713e; border-radius: 100px; margin-bottom: 18px; }
+.staff-section { margin-top: 32px; }
+.staff-link { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin: 12px 0; overflow-wrap: anywhere; }
+a.staff-link:hover { border-color: var(--accent); }
+.staff-link span { color: var(--muted); font-size: 14px; }
+.account-next { border-top: 1px solid var(--line); margin-top: 30px; padding-top: 26px; }
+.account-next p { color: var(--muted); line-height: 1.7; }
+.account-next .primary-button { margin: 8px 0 26px; }
+.session-note { margin-top: 24px; }
+#sign-out { background: transparent; min-height: 44px; padding: 8px 0; text-align: left; }
+#workspace-error h1 { font-size: clamp(28px, 4vw, 42px); line-height: 1.2; letter-spacing: -.8px; }
+#workspace-error .text-link { display: inline-block; margin: 12px; }
+@media (max-width: 900px) { .account-shell { grid-template-columns: 1fr 400px; width: calc(100% - 64px); gap: 32px; } .account-intro h1 { font-size: 58px; } }
+@media (max-width: 740px) { .account-shell { display: block; width: min(480px, calc(100% - 40px)); margin-top: 28px; } .account-intro { padding: 0; } .account-intro h1 { font-size: 49px; margin: 16px 0; } .account-intro > p:not(.eyebrow), .account-court { display: none; } .account-intro .eyebrow { font-size: 12px; line-height: 1.6; } .account-panel { padding: 25px; margin-top: 28px; } .account-panel h2 { font-size: 27px; } }
+@media (max-width: 380px) { .account-panel { padding: 20px; } .account-intro h1 { font-size: 43px; } .account-page .header-nav a { font-size: 14px; } .directory .header-nav { gap: 12px; } .directory .header-nav a { font-size: 14px; } }
 @media (max-width: 420px) and (min-height: 601px) and (max-height: 740px) {
   :root { --header-height: 74px; --footer-height: 64px; }
   .hero { padding-top: 145px; padding-bottom: 22px; }

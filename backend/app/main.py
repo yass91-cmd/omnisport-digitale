@@ -5,6 +5,7 @@ from pathlib import PurePosixPath
 from alembic.config import Config
 from alembic.script import ScriptDirectory
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
@@ -13,6 +14,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from starlette.exceptions import HTTPException
 
+from .auth import router as auth_router
+from .auth import staff_router
 from .catalog import router
 from .config import ROOT, Settings
 from .database import make_engine
@@ -39,7 +42,9 @@ class PublicFiles(StaticFiles):
         if path not in {"", "."} and PurePosixPath(path).suffix.lower() not in PUBLIC_SUFFIXES:
             raise HTTPException(404)
         response = await super().get_response(path, scope)
-        response.headers["Cache-Control"] = "no-cache"
+        response.headers["Cache-Control"] = (
+            "no-store" if path in {"account.html", "workspace.html"} else "no-cache"
+        )
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
@@ -55,9 +60,31 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
         yield
         engine.dispose()
 
-    app = FastAPI(title="OmniSport Digitale API", version="0.2.0", lifespan=lifespan)
+    app = FastAPI(title="OmniSport Digitale API", version="0.3.0", lifespan=lifespan)
+    app.state.settings = settings
     app.state.engine = engine
     app.state.sessions = sessionmaker(engine, expire_on_commit=False)
+
+    @app.middleware("http")
+    async def private_response_headers(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(request: Request, error: RequestValidationError):
+        # Validation responses must not echo submitted passwords or other private input.
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": [
+                    {"loc": list(item["loc"]), "msg": item["msg"], "type": item["type"]}
+                    for item in error.errors()
+                ]
+            },
+        )
 
     @app.exception_handler(SQLAlchemyError)
     async def database_error(request: Request, error: SQLAlchemyError):
@@ -81,5 +108,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
         return {"status": "ready"}
 
     app.include_router(router)
+    app.include_router(auth_router)
+    app.include_router(staff_router)
     app.mount("/", PublicFiles(directory=ROOT / "frontend" / "dist", html=True), name="website")
     return app

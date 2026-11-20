@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10140f">
+  <title>Your account — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script type="module" src="assets/account.js"></script>
+</head>
+<body class="directory account-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a>
+    <nav class="header-nav" aria-label="Main navigation"><a href="complexes.html">Explore complexes</a></nav>
+  </header>
+  <main class="account-shell" id="main">
+    <section class="account-intro" aria-labelledby="account-heading">
+      <p class="eyebrow">ONE ACCOUNT. MORE WAYS TO PLAY.</p>
+      <h1 id="account-heading">MAKE IT<br><span class="accent-word">YOUR GAME.</span></h1>
+      <p>Your next game starts with a place to call yours.</p>
+      <img class="account-court" src="assets/complex-art.svg" alt="" width="560" height="300">
+    </section>
+    <div class="account-panel">
+      <p class="account-status" id="account-status" role="status">Getting your account ready…</p>
+      <section id="auth-view" aria-labelledby="auth-heading" hidden>
+        <h2 id="auth-heading">Welcome back.</h2>
+        <p class="account-lead" id="auth-lead">Sign in and find your next place to play.</p>
+        <div class="auth-tabs" role="group" aria-label="Account options">
+          <button type="button" data-auth-mode="login" aria-pressed="true">Sign in</button>
+          <button type="button" data-auth-mode="register" aria-pressed="false">Create account</button>
+        </div>
+        <p class="form-message" id="auth-message" role="alert" hidden></p>
+        <form id="login-form">
+          <fieldset>
+            <label for="login-email">Email address</label>
+            <input id="login-email" name="email" type="email" autocomplete="username" maxlength="254" required>
+            <label for="login-password">Password</label>
+            <div class="password-field"><input id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" required><button type="button" data-password-toggle="login-password" aria-label="Show sign-in password" aria-pressed="false">Show</button></div>
+            <button class="primary-button form-submit" type="submit">Sign in</button>
+          </fieldset>
+        </form>
+        <form id="register-form" hidden>
+          <fieldset>
+            <label for="register-name">Your name</label>
+            <input id="register-name" name="name" type="text" autocomplete="name" maxlength="100" required>
+            <label for="register-email">Email address</label>
+            <input id="register-email" name="email" type="email" autocomplete="username" maxlength="254" required>
+            <label for="register-password">Password</label>
+            <div class="password-field"><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="15" maxlength="128" aria-describedby="password-help" required><button type="button" data-password-toggle="register-password" aria-label="Show new password" aria-pressed="false">Show</button></div>
+            <p class="field-help" id="password-help">Use 15–128 characters. A few memorable words work well.</p>
+            <label for="confirm-password">Confirm password</label>
+            <input id="confirm-password" name="confirmation" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+            <button class="primary-button form-submit" type="submit">Create account</button>
+          </fieldset>
+        </form>
+      </section>
+      <section id="profile-view" aria-labelledby="profile-heading" hidden>
+        <span class="role-badge" id="client-role"></span>
+        <h2 id="profile-heading"></h2>
+        <p class="account-email" id="profile-email"></p>
+        <form id="profile-form">
+          <fieldset>
+            <label for="profile-name">Your name</label>
+            <input id="profile-name" name="name" autocomplete="name" maxlength="100" required>
+            <button class="secondary-button" type="submit">Save name</button>
+          </fieldset>
+        </form>
+        <p class="form-message" id="profile-message" role="status" hidden></p>
+        <section class="staff-section" id="staff-section" aria-labelledby="staff-heading" hidden>
+          <h3 id="staff-heading">Your complexes</h3>
+          <div id="staff-links"></div>
+        </section>
+        <div class="account-next"><h3>Ready for your next game?</h3><p>Explore places to play. Online reservations are coming next.</p><a class="primary-button" href="complexes.html">Explore complexes</a></div>
+        <button class="text-link" id="sign-out" type="button">Sign out</button>
+        <p class="field-help session-note">For your privacy, you’re signed out after a period of inactivity.</p>
+      </section>
+      <section id="account-error" hidden><h2>We couldn’t load your account.</h2><p>Please try again in a moment.</p><button class="secondary-button" id="account-retry">Try again</button></section>
+    </div>
+  </main>
+  <noscript><p class="noscript-note">JavaScript is needed to sign in. You can still explore sports complexes.</p></noscript>
+</body>
+</html>
