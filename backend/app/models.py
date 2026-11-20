@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -6,7 +7,9 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -30,6 +33,7 @@ class Complex(Base):
     description: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    currency: Mapped[str] = mapped_column(String(3), default="MAD", server_default="MAD")
     facilities: Mapped[list["Facility"]] = relationship(back_populates="complex")
 
 
@@ -40,11 +44,20 @@ class Sport(Base):
     slug: Mapped[str] = mapped_column(String(40), unique=True)
     name: Mapped[str] = mapped_column(String(80))
     facilities: Mapped[list["Facility"]] = relationship(back_populates="sport")
+    durations: Mapped[list["SportDuration"]] = relationship()
+
+    @property
+    def allowed_durations(self) -> list[int]:
+        return sorted(rule.minutes for rule in self.durations)
 
 
 class Facility(Base):
     __tablename__ = "facilities"
-    __table_args__ = (UniqueConstraint("complex_id", "name", name="uq_facilities_complex_name"),)
+    __table_args__ = (
+        UniqueConstraint("complex_id", "name", name="uq_facilities_complex_name"),
+        UniqueConstraint("id", "sport_id", name="uq_facilities_id_sport"),
+        CheckConstraint("version >= 1", name="ck_facilities_version"),
+    )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     complex_id: Mapped[UUID] = mapped_column(ForeignKey("complexes.id"), index=True)
@@ -53,8 +66,77 @@ class Facility(Base):
     surface: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    weekend_percent: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2),
+        CheckConstraint(
+            "weekend_percent >= 0 AND weekend_percent <= 100", name="ck_facilities_weekend_percent"
+        ),
+        default=Decimal("10.00"),
+        server_default="10.00",
+    )
+    evening_percent: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2),
+        CheckConstraint(
+            "evening_percent >= 0 AND evening_percent <= 100", name="ck_facilities_evening_percent"
+        ),
+        default=Decimal("10.00"),
+        server_default="10.00",
+    )
     complex: Mapped[Complex] = relationship(back_populates="facilities")
     sport: Mapped[Sport] = relationship(back_populates="facilities")
+    opening_hours: Mapped[list["OpeningHour"]] = relationship(viewonly=True)
+    tariffs: Mapped[list["FacilityTariff"]] = relationship(viewonly=True)
+
+
+class SportDuration(Base):
+    __tablename__ = "sport_durations"
+    __table_args__ = (
+        CheckConstraint("minutes > 0 AND minutes <= 1440", name="ck_sport_durations_minutes"),
+    )
+
+    sport_id: Mapped[UUID] = mapped_column(ForeignKey("sports.id"), primary_key=True)
+    minutes: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+
+class OpeningHour(Base):
+    __tablename__ = "opening_hours"
+    __table_args__ = (
+        UniqueConstraint("facility_id", "weekday", "start_minute", name="uq_opening_hours_start"),
+        CheckConstraint("weekday >= 0 AND weekday <= 6", name="ck_opening_hours_weekday"),
+        CheckConstraint(
+            "start_minute >= 0 AND start_minute < end_minute AND end_minute <= 1440",
+            name="ck_opening_hours_interval",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    facility_id: Mapped[UUID] = mapped_column(ForeignKey("facilities.id"), index=True)
+    weekday: Mapped[int] = mapped_column(Integer)
+    start_minute: Mapped[int] = mapped_column(Integer)
+    end_minute: Mapped[int] = mapped_column(Integer)
+
+
+class FacilityTariff(Base):
+    __tablename__ = "facility_tariffs"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["facility_id", "sport_id"],
+            ["facilities.id", "facilities.sport_id"],
+            name="fk_facility_tariffs_owner_sport",
+        ),
+        ForeignKeyConstraint(
+            ["sport_id", "minutes"],
+            ["sport_durations.sport_id", "sport_durations.minutes"],
+            name="fk_facility_tariffs_allowed_duration",
+        ),
+        CheckConstraint("amount >= 0", name="ck_facility_tariffs_amount"),
+    )
+
+    facility_id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+    sport_id: Mapped[UUID] = mapped_column(Uuid)
+    minutes: Mapped[int] = mapped_column(Integer, primary_key=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
 
 
 class User(Base):

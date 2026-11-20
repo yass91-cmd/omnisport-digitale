@@ -1,4 +1,5 @@
 import { element, readApi } from "./catalog-ui.js";
+import { facilitySummary } from "./facility-summary.js";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
@@ -30,6 +31,7 @@ async function loadComplex() {
       card.append(element("h3", "", facility.name));
       card.append(element("p", "facility-surface", facility.surface));
       card.append(element("p", "", facility.description));
+      card.append(facilitySummary(facility, complex.currency, complex.timezone));
       grid.append(card);
     });
     if (!complex.facilities.length) grid.append(element("p", "catalog-note", "Facilities will be listed here when they open."));
