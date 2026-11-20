@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10140f">
+  <title>Complex details — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script type="module" src="assets/complex.js"></script>
+</head>
+<body class="directory">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a>
+    <nav class="header-nav" aria-label="Main navigation"><a href="complexes.html" id="back-to-directory">Explore complexes</a></nav>
+  </header>
+  <main class="directory-main complex-main" id="main">
+    <p class="eyebrow">YOUR PLACE TO PLAY</p>
+    <p class="catalog-status" id="detail-status" role="status">Getting the facilities ready…</p>
+    <section id="complex-detail" hidden>
+      <span class="demo-badge detail-demo" id="detail-demo" hidden>Demo complex</span>
+      <h1 class="complex-title" id="complex-name"></h1>
+      <p class="complex-location" id="complex-location"></p>
+      <p class="complex-description" id="complex-description"></p>
+      <p class="catalog-note" id="detail-demo-notice" hidden>This is a fictional demo location. Online reservations are not open yet.</p>
+      <div class="facilities-heading"><h2>Find your game</h2><p id="facility-count"></p></div>
+      <div class="facility-grid" id="facility-grid"></div>
+      <a class="text-link" href="complexes.html">Explore other complexes</a>
+    </section>
+    <section class="empty-directory" id="detail-error" hidden>
+      <h2 id="detail-error-title">We couldn't load this complex.</h2>
+      <p id="detail-error-message">Please try again in a moment.</p>
+      <button class="text-link message-action" id="detail-retry">Try again</button>
+    </section>
+  </main>
+</body>
+</html>

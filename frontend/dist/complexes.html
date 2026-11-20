@@ -17,16 +17,22 @@
   </header>
   <main class="directory-main" id="main">
     <p class="eyebrow">MAKE ROOM FOR YOUR NEXT GAME</p>
-    <h1>FIND YOUR<br><span class="accent-word">PLACE.</span></h1>
-    <p class="directory-intro">One sport. Plenty of possibilities.</p>
+    <h1 class="directory-title">FIND YOUR <span class="accent-word">PLACE.</span></h1>
+    <p class="directory-intro">Choose your city. Find your next place to play.</p>
+    <div class="catalog-controls">
+    <label class="city-filter" for="city-filter">City<select id="city-filter"><option value="">All cities</option></select></label>
     <div class="directory-filters" role="group" aria-label="Filter complexes by sport">
       <button data-filter="all" aria-pressed="true">All sports</button><button data-filter="football" aria-pressed="false">Football</button><button data-filter="basketball" aria-pressed="false">Basketball</button><button data-filter="tennis" aria-pressed="false">Tennis</button>
     </div>
-    <section class="empty-directory" aria-labelledby="empty-title" aria-live="polite">
+    </div>
+    <p class="catalog-status" id="catalog-status" role="status">Finding your next place to play…</p>
+    <p class="catalog-note" id="demo-notice" hidden>Demo locations — these are fictional examples for exploring OmniSport.</p>
+    <div class="complex-grid" id="complex-grid" aria-label="Sports complexes" aria-busy="true"></div>
+    <section class="empty-directory" id="catalog-message" aria-labelledby="empty-title" hidden>
       <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="10" y="7" width="44" height="50" rx="4"/><path d="M10 32h44M24 7v9h16V7m-16 50v-9h16v9"/><circle cx="32" cy="32" r="9"/></svg>
-      <h2 id="empty-title">The lineup is coming together.</h2>
-      <p id="directory-message">No complexes are listed yet. Check back soon for your next place to play.</p>
-      <a class="text-link" href="./">Return to the playground</a>
+      <h2 id="empty-title">No matches this time.</h2>
+      <p id="directory-message">Try another city or sport to find your place.</p>
+      <button class="text-link message-action" id="catalog-retry">Try again</button>
     </section>
   </main>
 </body>
