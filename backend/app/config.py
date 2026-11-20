@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL, make_url
 
@@ -17,6 +17,30 @@ class Settings(BaseSettings):
     db_name: str = "omnisport"
     db_user: str = "omnisport"
     db_password: SecretStr = Field(default=SecretStr(""), repr=False)
+    auth_origins: list[str] = [
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8001",
+        "http://localhost:8001",
+    ]
+    cookie_secure: bool = False
+    session_hours: int = Field(default=12, ge=1, le=24)
+    session_idle_minutes: int = Field(default=30, ge=5, le=120)
+    login_email_limit: int = Field(default=8, ge=1, le=100)
+    login_ip_limit: int = Field(default=40, ge=1, le=500)
+
+    @model_validator(mode="after")
+    def production_cookies(self):
+        if self.environment == "production" and (
+            not self.cookie_secure
+            or any(not origin.startswith("https://") for origin in self.auth_origins)
+        ):
+            raise ValueError("Production requires secure cookies and explicit HTTPS auth origins")
+        return self
+
+    @property
+    def session_cookie(self) -> str:
+        return "__Host-omni_session" if self.cookie_secure else "omni_session"
 
     def sqlalchemy_url(self) -> URL:
         if self.database_url:
