@@ -37,6 +37,10 @@ def main():
         "--demo", action="store_true", help="Also add the two fictional demonstration complexes."
     )
     commands.add_parser("test", help="Run tests against SQLite and a disposable MySQL database.")
+    access = commands.add_parser(
+        "access", help="Run the trusted role-assignment CLI in the app container."
+    )
+    access.add_argument("arguments", nargs=argparse.REMAINDER)
     commands.add_parser(
         "stop", help="Stop this project's services without deleting its database volume."
     )
@@ -54,6 +58,9 @@ def main():
             run("--profile", "test", "stop", "app", "db", "migrate", "test-db")
             return
         configure()
+        if args.command == "access":
+            run("exec", "-T", "app", "python", "-m", "backend.app.accounts", *args.arguments)
+            return
         if args.command == "start":
             run("up", "-d", "--build", "--wait", "--wait-timeout", "180", "app")
             if args.demo:

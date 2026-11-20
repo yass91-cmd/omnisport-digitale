@@ -10,6 +10,8 @@ x-application: &application
     OMNI_DB_NAME: ${OMNI_DB_NAME:-omnisport}
     OMNI_DB_USER: ${OMNI_DB_USER:-omnisport}
     OMNI_DB_PASSWORD: ${OMNI_DB_PASSWORD:?Run python scripts/configure.py first}
+    OMNI_COOKIE_SECURE: ${OMNI_COOKIE_SECURE:-false}
+    OMNI_AUTH_ORIGINS: '${OMNI_AUTH_ORIGINS:-["http://127.0.0.1:8000","http://localhost:8000","http://127.0.0.1:8001","http://localhost:8001"]}'
 
 services:
   db:
