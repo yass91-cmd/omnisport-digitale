@@ -1,0 +1,30 @@
+# Allow only application/build/test source into the Docker context.
+**
+!Dockerfile
+!.dockerignore
+!pyproject.toml
+!alembic.ini
+!backend/
+!backend/**
+!migrations/
+!migrations/**
+!tests/
+!tests/**
+!scripts/
+!scripts/smoke.py
+!frontend/
+!frontend/dist/
+!frontend/dist/**
+
+# Private documents must stay outside build contexts and images.
+*.[mM][dD]
+**/*.[mM][dD]
+*.[mM][aA][rR][kK][dD][oO][wW][nN]
+**/*.[mM][aA][rR][kK][dD][oO][wW][nN]
+*.[pP][dD][fF]
+**/*.[pP][dD][fF]
+.env*
+**/.env*
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
