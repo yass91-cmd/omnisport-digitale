@@ -1,0 +1,6 @@
+{
+  "name": "omnisport-landing",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free landing UI; intended for later FastAPI integration"
+}

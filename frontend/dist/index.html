@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10140f">
+  <meta name="description" content="Choose your sport. Find a sports complex. Make your next game happen with OmniSport Digitale.">
+  <title>OmniSport Digitale — Your next game starts here</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script type="module" src="assets/main.js"></script>
+</head>
+<body class="landing" data-sport="football">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-football" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.1"/><path d="m12 7 4.7 3.4-1.8 5.5H9.1l-1.8-5.5L12 7Zm0-4v4m8.6 2.2-3.9 1.2m.6 9-2.4-3.5m-8.2 3.5 2.4-3.5m-5.7-6.7 3.9 1.2"/></symbol>
+    <symbol id="icon-basketball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.1"/><path d="m5.6 5.6 12.8 12.8M18.4 5.6 5.6 18.4M3.1 11.4c4.8 1.2 8.3-2.3 9.5-8.3m-1.2 17.8c1.2-4.8 4.7-8.3 9.5-9.5"/></symbol>
+    <symbol id="icon-tennis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.1"/><path d="M5 6.2c6.3.2 7.4 4.8 3.8 8.1s-2.4 5.1-1.6 6M19 17.8c-6.3-.2-7.4-4.8-3.8-8.1s2.4-5.1 1.6-6"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="OmniSport Digitale home">
+      <img src="assets/mark.svg" width="42" height="42" alt="">
+      <span>OMNISPORT<span class="brand-sub">DIGITALE</span></span>
+    </a>
+    <nav class="header-nav" aria-label="Main navigation">
+      <a href="complexes.html" class="nav-explore" data-explore>Explore complexes</a>
+      <button class="sign-in" type="button" data-account aria-haspopup="dialog">Sign in <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5.6 20v-2.2a6.4 6.4 0 0 1 12.8 0V20"/></svg></button>
+    </nav>
+  </header>
+
+  <main id="main" class="hero">
+    <div class="hero-media" aria-hidden="true">
+      <video class="hero-video" id="sport-video" muted loop playsinline preload="none" tabindex="-1"></video>
+      <canvas id="sport-scene"></canvas>
+      <div class="media-shade"></div>
+    </div>
+    <div class="hero-outline" aria-hidden="true"></div>
+    <section class="hero-copy" aria-labelledby="hero-title">
+      <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> YOUR NEXT GAME STARTS HERE</p>
+      <h1 id="hero-title">CHOOSE<br>YOUR <span class="accent-word">GAME.</span></h1>
+      <p class="hero-description">Your sport. Your people. Your place to play.</p>
+      <a class="primary-button" id="find-place" href="complexes.html?sport=football">Find a place to play</a>
+      <div class="sport-picker" role="group" aria-label="Choose your sport">
+        <button class="sport-choice is-active" data-sport-choice="football" aria-pressed="true"><svg aria-hidden="true"><use href="#icon-football"/></svg><span>Football</span></button>
+        <button class="sport-choice" data-sport-choice="basketball" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-basketball"/></svg><span>Basketball</span></button>
+        <button class="sport-choice" data-sport-choice="tennis" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-tennis"/></svg><span>Tennis</span></button>
+      </div>
+    </section>
+    <div class="scene-caption" aria-hidden="true"><span class="scene-caption-line"></span><span id="scene-label">THE BEAUTIFUL GAME.</span></div>
+  </main>
+
+  <footer class="landing-footer">
+    <p>LESS SCROLLING. MORE PLAYING.</p>
+    <div class="experience-controls">
+      <button id="replay-intro" class="quiet-button" hidden>Watch intro</button>
+      <span class="control-divider" aria-hidden="true"></span>
+      <button id="motion-toggle" class="quiet-button" aria-pressed="false">Pause motion</button>
+      <span class="control-divider" aria-hidden="true"></span>
+      <button id="sound-toggle" class="sound-toggle" aria-pressed="false" aria-label="Turn background sound on"><span class="sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="sound-label">Sound off</span></button>
+    </div>
+  </footer>
+  <p class="sr-only" id="experience-status" role="status" aria-live="polite"></p>
+  <dialog class="intro-dialog" id="intro-dialog" aria-labelledby="intro-title">
+    <h2 id="intro-title" class="sr-only">Welcome to OmniSport Digitale</h2>
+    <video id="intro-video" class="intro-video" muted playsinline preload="metadata" aria-hidden="true" tabindex="-1"></video>
+    <button id="intro-play" class="intro-play" hidden>Play intro</button>
+    <div class="intro-toolbar">
+      <button id="intro-sound" class="sound-toggle" aria-pressed="false" aria-label="Turn intro sound on"><span class="sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="intro-sound-label">Sound off</span></button>
+      <button id="skip-intro" class="skip-intro" autofocus>Skip intro</button>
+    </div>
+  </dialog>
+  <dialog class="account-dialog" id="account-dialog" aria-labelledby="account-title">
+    <button class="dialog-close" data-close-dialog aria-label="Close sign-in information">×</button>
+    <img src="assets/mark.svg" width="48" height="48" alt="">
+    <p class="eyebrow">ONE ACCOUNT. MORE WAYS TO PLAY.</p>
+    <h2 id="account-title">See you at kick-off.</h2>
+    <p>Accounts and reservations are coming soon. For now, discover your sport and explore the experience.</p>
+    <button class="primary-button" data-close-dialog>Keep exploring</button>
+  </dialog>
+  <noscript><p class="noscript-note">Explore sports complexes using the links above. JavaScript enables the interactive sports experience.</p></noscript>
+</body>
+</html>

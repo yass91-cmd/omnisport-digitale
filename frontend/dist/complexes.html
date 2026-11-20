@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10140f">
+  <title>Explore complexes — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script type="module" src="assets/directory.js"></script>
+</head>
+<body class="directory">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a>
+    <nav class="header-nav" aria-label="Main navigation"><a href="./">Back to the playground</a></nav>
+  </header>
+  <main class="directory-main" id="main">
+    <p class="eyebrow">MAKE ROOM FOR YOUR NEXT GAME</p>
+    <h1>FIND YOUR<br><span class="accent-word">PLACE.</span></h1>
+    <p class="directory-intro">One sport. Plenty of possibilities.</p>
+    <div class="directory-filters" role="group" aria-label="Filter complexes by sport">
+      <button data-filter="all" aria-pressed="true">All sports</button><button data-filter="football" aria-pressed="false">Football</button><button data-filter="basketball" aria-pressed="false">Basketball</button><button data-filter="tennis" aria-pressed="false">Tennis</button>
+    </div>
+    <section class="empty-directory" aria-labelledby="empty-title" aria-live="polite">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="10" y="7" width="44" height="50" rx="4"/><path d="M10 32h44M24 7v9h16V7m-16 50v-9h16v9"/><circle cx="32" cy="32" r="9"/></svg>
+      <h2 id="empty-title">The lineup is coming together.</h2>
+      <p id="directory-message">No complexes are listed yet. Check back soon for your next place to play.</p>
+      <a class="text-link" href="./">Return to the playground</a>
+    </section>
+  </main>
+</body>
+</html>

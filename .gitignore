@@ -1,0 +1,51 @@
+# Private local documents: keep them on disk, out of Git.
+*.[mM][dD]
+*.[mM][aA][rR][kK][dD][oO][wW][nN]
+*.[pP][dD][fF]
+
+# Local environment values; commit only placeholder examples.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Installed dependencies and Python-generated files.
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Test, type-checking, and coverage output.
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local runtime data, backups, logs, and temporary files.
+/mysql-data/
+/backups/
+*.log
+*.pid
+*.tmp
+*.temp
+
+# Operating-system files.
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Generated screenshots for local review.
+/frontend/preview/
+
+# Exact duplicate of frontend/dist/media/landing-intro.mp4.
+/frontend/Untitled_Scene_11-20_00_05_02_20261119232843.mp4
+
+# IMPORTANT: frontend/dist is the current application source.
+# Keep its HTML, CSS, JavaScript, SVG, and media files in Git.
+# Also keep dependency lockfiles, migrations, tests, Docker, and CI files.
