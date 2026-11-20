@@ -212,8 +212,17 @@ def workspace(assignment: ComplexAssignment):
         "name": complex_.name,
         "city": complex_.city,
         "role": assignment.role,
+        "timezone": complex_.timezone,
+        "currency": complex_.currency,
         "facilities": [
-            {"id": item.id, "name": item.name, "active": item.active}
+            {
+                "id": item.id,
+                "name": item.name,
+                "active": item.active,
+                "sport": item.sport.name,
+                "sport_id": item.sport_id,
+                "surface": item.surface,
+            }
             for item in sorted(complex_.facilities, key=lambda item: item.name)
         ],
     }

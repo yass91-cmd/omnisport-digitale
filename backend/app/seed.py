@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from .config import Settings
 from .database import make_engine
-from .models import Complex, Facility, Sport
+from .models import Complex, Facility, Sport, SportDuration
 
 
 def demo_id(name: str):
@@ -52,6 +52,11 @@ def seed_demo(session: Session) -> None:
                     active=True,
                 )
             )
+    session.flush()
+    for sport_id in sports.values():
+        for value in [60, 90, 120]:
+            if session.get(SportDuration, (sport_id, value)) is None:
+                session.add(SportDuration(sport_id=sport_id, minutes=value))
     session.flush()
     for complex_slug, sport, name, surface, description in [
         (
@@ -122,7 +127,7 @@ def main():
         with Session(engine) as session, session.begin():
             seed_demo(session)
         print(
-            "Demo catalogue ready: 2 complexes, 3 sports and 5 facilities. Existing records were preserved."
+            "Base demo catalogue ensured (2 complexes, 3 sports, 5 facilities). Existing records were preserved."
         )
     finally:
         engine.dispose()

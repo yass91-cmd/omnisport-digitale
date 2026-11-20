@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -8,6 +9,18 @@ class SportRead(BaseModel):
     id: UUID
     slug: str
     name: str
+    allowed_durations: list[int]
+
+
+class OpeningRead(BaseModel):
+    weekday: int
+    opens_at: str
+    closes_at: str
+
+
+class TariffRead(BaseModel):
+    minutes: int
+    amount: Decimal
 
 
 class FacilityRead(BaseModel):
@@ -17,6 +30,10 @@ class FacilityRead(BaseModel):
     surface: str
     description: str
     sport: SportRead
+    opening_hours: list[OpeningRead]
+    tariffs: list[TariffRead]
+    weekend_percent: Decimal
+    evening_percent: Decimal
 
 
 class ComplexSummary(BaseModel):
@@ -27,6 +44,7 @@ class ComplexSummary(BaseModel):
     timezone: str
     description: str
     is_demo: bool
+    currency: str
     sports: list[SportRead]
     facility_count: int
 

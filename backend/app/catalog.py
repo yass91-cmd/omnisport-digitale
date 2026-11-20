@@ -7,7 +7,15 @@ from sqlalchemy.orm import Session, selectinload
 
 from .database import get_session
 from .models import Complex, Facility, Sport
-from .schemas import ComplexDetail, ComplexPage, ComplexSummary, FacilityRead, SportRead
+from .schemas import (
+    ComplexDetail,
+    ComplexPage,
+    ComplexSummary,
+    FacilityRead,
+    OpeningRead,
+    SportRead,
+    TariffRead,
+)
 
 router = APIRouter(prefix="/api/v1", tags=["catalogue"])
 Database = Annotated[Session, Depends(get_session)]
@@ -16,6 +24,36 @@ Database = Annotated[Session, Depends(get_session)]
 def public_facilities(complex_: Complex) -> list[Facility]:
     return sorted(
         (facility for facility in complex_.facilities if facility.active), key=lambda f: f.name
+    )
+
+
+def clock_time(value: int) -> str:
+    return f"{value // 60:02}:{value % 60:02}"
+
+
+def facility_read(facility: Facility) -> FacilityRead:
+    return FacilityRead(
+        id=facility.id,
+        name=facility.name,
+        surface=facility.surface,
+        description=facility.description,
+        sport=SportRead.model_validate(facility.sport),
+        weekend_percent=facility.weekend_percent,
+        evening_percent=facility.evening_percent,
+        opening_hours=[
+            OpeningRead(
+                weekday=row.weekday,
+                opens_at=clock_time(row.start_minute),
+                closes_at=clock_time(row.end_minute),
+            )
+            for row in sorted(
+                facility.opening_hours, key=lambda row: (row.weekday, row.start_minute)
+            )
+        ],
+        tariffs=[
+            TariffRead(minutes=row.minutes, amount=row.amount)
+            for row in sorted(facility.tariffs, key=lambda row: row.minutes)
+        ],
     )
 
 
@@ -30,6 +68,7 @@ def summary(complex_: Complex) -> ComplexSummary:
         timezone=complex_.timezone,
         description=complex_.description,
         is_demo=complex_.is_demo,
+        currency=complex_.currency,
         sports=[SportRead.model_validate(sports[key]) for key in sorted(sports)],
         facility_count=len(facilities),
     )
@@ -37,7 +76,9 @@ def summary(complex_: Complex) -> ComplexSummary:
 
 @router.get("/sports", response_model=list[SportRead])
 def list_sports(session: Database):
-    return session.scalars(select(Sport).order_by(Sport.name)).all()
+    return session.scalars(
+        select(Sport).options(selectinload(Sport.durations)).order_by(Sport.name)
+    ).all()
 
 
 @router.get("/cities", response_model=list[str])
@@ -68,7 +109,11 @@ def list_complexes(
     items = session.scalars(
         select(Complex)
         .where(*conditions)
-        .options(selectinload(Complex.facilities).selectinload(Facility.sport))
+        .options(
+            selectinload(Complex.facilities)
+            .selectinload(Facility.sport)
+            .selectinload(Sport.durations)
+        )
         .order_by(Complex.name, Complex.id)
         .limit(limit)
         .offset(offset)
@@ -81,13 +126,17 @@ def get_complex(complex_id: UUID, session: Database):
     complex_ = session.scalar(
         select(Complex)
         .where(Complex.id == complex_id, Complex.active.is_(True))
-        .options(selectinload(Complex.facilities).selectinload(Facility.sport))
+        .options(
+            selectinload(Complex.facilities)
+            .selectinload(Facility.sport)
+            .selectinload(Sport.durations),
+            selectinload(Complex.facilities).selectinload(Facility.opening_hours),
+            selectinload(Complex.facilities).selectinload(Facility.tariffs),
+        )
     )
     if complex_ is None:
         raise HTTPException(status_code=404, detail="Complex not found")
     return ComplexDetail(
         **summary(complex_).model_dump(),
-        facilities=[
-            FacilityRead.model_validate(facility) for facility in public_facilities(complex_)
-        ],
+        facilities=[facility_read(facility) for facility in public_facilities(complex_)],
     )

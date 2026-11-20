@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#10140f">
+  <title>Facility settings — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css">
+  <script type="module" src="assets/facility.js"></script>
+</head>
+<body class="directory">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a><nav class="header-nav" aria-label="Main navigation"><a id="back-workspace" href="account.html">My workspace</a></nav></header>
+  <main class="directory-main facility-editor" id="main">
+    <p class="eyebrow">MAKE ROOM FOR THE NEXT GAME</p>
+    <h1 class="editor-title" id="editor-heading">FACILITY <span class="accent-word">SETTINGS.</span></h1>
+    <p class="editor-context" id="editor-context"></p>
+    <p id="editor-status" role="status">Loading facility settings…</p>
+    <section class="empty-directory" id="editor-error" hidden><h2 id="editor-error-title">We couldn’t load this facility.</h2><p id="editor-error-message"></p><button class="secondary-button" id="editor-retry">Try again</button><a class="text-link" href="account.html">Go to my account</a></section>
+    <form id="facility-form" hidden>
+      <fieldset id="facility-fields">
+        <section class="settings-card" aria-labelledby="details-heading">
+          <h2 id="details-heading">Facility details</h2><p class="field-help">Set the details players will see in the directory.</p>
+          <div class="settings-grid">
+            <div><label for="facility-name">Facility name</label><input id="facility-name" maxlength="120" required autocomplete="off"></div>
+            <div><label for="facility-sport">Sport</label><select id="facility-sport" required></select></div>
+            <p class="field-help settings-wide">Choose the sport for this court or pitch. A complex can have several sports and several facilities for each sport.</p>
+            <div class="settings-wide"><label for="facility-surface">Surface</label><input id="facility-surface" maxlength="100" required placeholder="For example, synthetic grass" autocomplete="off"></div>
+            <div class="settings-wide"><label for="facility-description">Description</label><textarea id="facility-description" rows="3" maxlength="2000"></textarea></div>
+          </div>
+          <label class="checkbox-label" for="facility-active"><input id="facility-active" type="checkbox"> Publish this facility in the public directory</label>
+          <p class="field-help">Unpublished facilities remain visible in your complex workspace.</p>
+        </section>
+        <section class="settings-card" aria-labelledby="hours-heading">
+          <div class="settings-heading"><div><h2 id="hours-heading">Weekly opening hours</h2><p class="field-help" id="hours-timezone"></p></div><button class="secondary-button" id="add-opening" type="button">Add interval</button></div>
+          <p class="field-help">Days without an interval are closed. Use 00:00 as the closing time for midnight. Split overnight hours into two days.</p>
+          <div id="opening-rows"></div><p class="settings-empty" id="hours-empty">No opening hours published yet.</p>
+        </section>
+        <section class="settings-card" aria-labelledby="prices-heading">
+          <div class="settings-heading"><div><h2 id="prices-heading">Durations &amp; base prices</h2><p class="field-help" id="prices-currency"></p></div><button class="secondary-button" id="add-tariff" type="button">Add price</button></div>
+          <p class="field-help">Set the base price for each duration. A price of 0 means free.</p>
+          <div id="tariff-rows"></div><p class="settings-empty" id="tariffs-empty">No prices published yet.</p>
+          <div class="pricing-rules"><h3>Busy-time increases</h3><div class="settings-grid">
+            <div><label for="weekend-percent">Saturday &amp; Sunday increase (%)</label><input id="weekend-percent" type="number" min="0" max="100" step="0.01" value="10" required></div>
+            <div><label for="evening-percent">6–9 pm increase (%)</label><input id="evening-percent" type="number" min="0" max="100" step="0.01" value="10" required></div>
+          </div><p class="field-help">Increases add together. Any overlap applies to the whole booking. Use 0 to disable an increase.</p><p class="pricing-description" id="pricing-description"></p></div>
+        </section>
+        <div class="settings-actions"><button class="primary-button" id="save-facility" type="submit">Save facility</button><a class="text-link" id="cancel-facility" href="account.html">Back to workspace</a></div>
+      </fieldset>
+    </form>
+    <p class="form-message" id="facility-message" role="status" hidden></p>
+    <button class="secondary-button" id="reload-settings" hidden>Reload saved version</button>
+  </main>
+</body>
+</html>
