@@ -25,13 +25,16 @@ async function loadComplex() {
     const grid = document.querySelector("#facility-grid");
     grid.replaceChildren();
     complex.facilities.forEach(facility => {
-      const card = element("article", "facility-card");
+      const card = element("article", "facility-card clickable-card");
       card.dataset.sport = facility.sport.slug;
       card.append(element("span", "sport-label", facility.sport.name));
-      card.append(element("h3", "", facility.name));
+      const heading=element("h3"),available=element("a","card-link",facility.name);
+      available.href=`availability.html?complex_id=${encodeURIComponent(complex.id)}&facility_id=${encodeURIComponent(facility.id)}`;
+      available.setAttribute("aria-label",`View available times for ${facility.name}`);heading.append(available);card.append(heading);
       card.append(element("p", "facility-surface", facility.surface));
       card.append(element("p", "", facility.description));
       card.append(facilitySummary(facility, complex.currency, complex.timezone));
+      const cue=element("span","text-link card-cue","View available times");cue.setAttribute("aria-hidden","true");card.append(cue);
       grid.append(card);
     });
     if (!complex.facilities.length) grid.append(element("p", "catalog-note", "Facilities will be listed here when they open."));

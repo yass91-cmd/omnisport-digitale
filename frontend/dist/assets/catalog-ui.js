@@ -17,6 +17,6 @@ export async function readApi(path, signal) {
 
 export function sportLabels(sports) {
   const list = element("div", "sport-labels");
-  sports.forEach(sport => list.append(element("span", "sport-label", sport.name)));
+  sports.forEach(sport => {const label=element("span","sport-label",sport.name);label.dataset.sport=sport.slug;list.append(label);});
   return list;
 }

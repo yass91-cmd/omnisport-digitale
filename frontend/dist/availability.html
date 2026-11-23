@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="assets/theme.js"></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#10140f">
+  <title>Available times — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/staff.css">
+  <script type="module" src="assets/availability.js"></script>
+  <link rel="stylesheet" href="assets/comfort.css">
+</head>
+<body class="directory">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a><nav class="header-nav" aria-label="Main navigation"><a id="schedule-back" href="complexes.html">Back to complex</a><a id="schedule-history" href="bookings.html">My bookings</a></nav></header>
+  <main class="directory-main facility-editor" id="main">
+    <p class="eyebrow" id="schedule-eyebrow">YOUR NEXT GAME STARTS HERE</p>
+    <h1 class="editor-title" id="schedule-heading">Find a time</h1><div id="schedule-sport"></div>
+    <p class="editor-context" id="schedule-context"></p>
+    <p class="field-help" id="schedule-timezone"></p>
+    <p class="catalog-note" id="schedule-preview" hidden>Unpublished facility · Administrator preview</p>
+    <p id="schedule-loading" role="status">Getting the available times ready…</p>
+    <section class="empty-directory" id="schedule-error" hidden><h2>We couldn’t load available times.</h2><p id="schedule-error-message"></p><button class="secondary-button" id="schedule-retry">Try again</button><a class="text-link" href="account.html">Go to my account</a></section>
+    <section class="settings-card" id="slots-panel" aria-labelledby="slots-heading" hidden>
+      <h2 id="slots-heading">Available times</h2>
+      <form id="slot-search"><fieldset id="slot-fields"><div class="settings-grid">
+        <div><label for="slot-day">Date</label><input id="slot-day" type="date" required></div>
+        <div><label for="slot-duration">Duration</label><select id="slot-duration" required aria-describedby="duration-note"></select><p class="field-help" id="duration-note"></p></div>
+      </div></fieldset></form>
+      <p class="field-help" id="slot-help">Choose a free period, then select your start and confirm. Prices include any weekend and evening increases.</p>
+      <a class="text-link" id="configure-hours" hidden>Set hours &amp; prices</a>
+      <p id="slot-status" role="status" class="field-help"></p>
+      <button class="secondary-button" id="next-available" type="button" hidden>Find next available day</button>
+      <p id="booking-message" role="status" class="catalog-note" hidden></p>
+      <ol id="daily-timetable" class="daily-timetable" aria-label="Available booking periods"></ol>
+      <form id="reservation-form" class="reservation-choice" hidden><h3>Your reservation</h3><fieldset id="reservation-fields">
+        <label for="reservation-start">Start time</label><select id="reservation-start" required></select>
+        <p id="reservation-summary" class="reservation-total" role="status"></p>
+        <div id="reservation-contact" class="settings-grid"><div><label for="client-name">Full name</label><input id="client-name" maxlength="100" autocomplete="off"></div><div><label for="client-phone">Phone number</label><input id="client-phone" type="tel" maxlength="40" placeholder="0612345678" autocomplete="tel"></div></div>
+        <p id="staff-contact-help" class="field-help" hidden>Walk-in customers do not need an account. Matching registered customers can see the reservation in My bookings.</p>
+        <button class="primary-button" id="confirm-reservation" type="submit">Confirm reservation</button>
+      </fieldset></form>
+      <a id="booking-history" class="text-link" href="bookings.html" hidden>My bookings</a>
+      <p class="catalog-note" id="booking-policy" hidden>Your time is secured when confirmation appears. You can cancel in My bookings until 2 hours before the start.</p>
+    </section>
+  </main>
+</body>
+</html>

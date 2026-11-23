@@ -66,7 +66,7 @@ def test_duplicate_email_is_canonical_and_does_not_replace_account(client, sessi
 
 def test_public_registration_cannot_grant_roles_or_assignments(client, session):
     for fields in [
-        {"client_role": "coach"},
+        {"client_role": "admin"},
         {"role": "admin"},
         {"active": True},
         {"staff_assignments": []},
@@ -111,10 +111,7 @@ def test_login_rotates_session_and_old_tokens_are_rejected(client, session):
     assert client.cookies.get("omni_session") != old_token
     assert first["csrf_token"] != second["csrf_token"]
     assert session.get(LoginSession, security.token_hash(old_token)) is None
-    assert (
-        client.patch("/api/v1/auth/me", json={"name": "Changed"}, headers=csrf(first)).status_code
-        == 403
-    )
+    assert client.post("/api/v1/auth/logout", json={}, headers=csrf(first)).status_code == 403
     assert (
         client.get("/api/v1/auth/me", headers={"Cookie": f"omni_session={old_token}"}).status_code
         == 401
@@ -133,33 +130,35 @@ def test_logout_revokes_server_session_and_stolen_cookie(client, session):
     )
 
 
-def test_profile_updates_require_authentication_csrf_and_only_allow_name(client):
+@pytest.mark.parametrize("client_type", ["player", "coach"])
+def test_registered_name_and_client_type_are_fixed(client, session, client_type):
     assert client.get("/api/v1/auth/me").status_code == 401
-    data = signup(client).json()
+    data = signup(client, client_role=client_type).json()
     path = "/api/v1/auth/me"
-    assert client.patch(path, json={"name": "New name"}, headers=WRITE).status_code == 403
+    for attempt in range(3):
+        assert (
+            client.patch(path, json={"name": f"Changed {attempt}"}, headers=csrf(data)).status_code
+            == 404
+        )
+    assert signin(client, name="Another name").status_code == 422
+    change_access(session, "grant-staff", data["email"], complex_id=demo_id("atlas"), role="admin")
     assert (
         client.patch(
-            path, json={"name": "New name"}, headers={**WRITE, "X-CSRF-Token": b"\xc3\xa9"}
+            path, json={"name": "Admin rename", "client_role": "coach"}, headers=csrf(data)
         ).status_code
-        == 403
+        == 404
     )
-    assert (
-        client.patch(
-            path, json={"name": "New name"}, headers={**WRITE, "X-CSRF-Token": "bad"}
-        ).status_code
-        == 403
-    )
-    assert (
-        client.patch(
-            path, json={"name": "New name", "client_role": "coach"}, headers=csrf(data)
-        ).status_code
-        == 422
-    )
-    updated = client.patch(path, json={"name": "  New name  "}, headers=csrf(data))
-    assert updated.status_code == 200 and updated.json()["name"] == "New name"
-    assert updated.json()["client_role"] == "player"
-    assert client.get(path).json()["name"] == "New name"
+    profile = client.get(path).json()
+    assert profile["name"] == "Test Player" and profile["client_role"] == client_type
+    assert session.get(User, UUID(data["id"])).name == "Test Player"
+
+
+def test_logout_requires_valid_ascii_csrf(client):
+    data = signup(client).json()
+    for supplied in [None, b"\xc3\xa9", "bad"]:
+        headers = WRITE if supplied is None else {**WRITE, "X-CSRF-Token": supplied}
+        assert client.post("/api/v1/auth/logout", json={}, headers=headers).status_code == 403
+    assert client.post("/api/v1/auth/logout", json={}, headers=csrf(data)).status_code == 204
 
 
 def test_cross_site_and_simple_form_requests_are_rejected(client):

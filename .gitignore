@@ -30,6 +30,7 @@ coverage.xml
 # Local runtime data, backups, logs, and temporary files.
 /mysql-data/
 /backups/
+/tmp/
 *.log
 *.pid
 *.tmp

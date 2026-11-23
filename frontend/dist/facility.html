@@ -1,12 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script src="assets/theme.js"></script>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#10140f">
   <title>Facility settings — OmniSport Digitale</title>
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/staff.css">
   <script type="module" src="assets/facility.js"></script>
+  <link rel="stylesheet" href="assets/comfort.css">
 </head>
-<body class="directory">
+<body class="directory staff-ui">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a><nav class="header-nav" aria-label="Main navigation"><a id="back-workspace" href="account.html">My workspace</a></nav></header>
   <main class="directory-main facility-editor" id="main">
@@ -30,20 +33,20 @@
           <p class="field-help">Unpublished facilities remain visible in your complex workspace.</p>
         </section>
         <section class="settings-card" aria-labelledby="hours-heading">
-          <div class="settings-heading"><div><h2 id="hours-heading">Weekly opening hours</h2><p class="field-help" id="hours-timezone"></p></div><button class="secondary-button" id="add-opening" type="button">Add interval</button></div>
-          <p class="field-help">Days without an interval are closed. Use 00:00 as the closing time for midnight. Split overnight hours into two days.</p>
-          <div id="opening-rows"></div><p class="settings-empty" id="hours-empty">No opening hours published yet.</p>
+          <h2 id="hours-heading">Weekly opening hours</h2><p class="field-help" id="hours-timezone"></p>
+          <p class="field-help">Set your usual hours once, then switch on your opening days. Use Change hours only when a day is different.</p>
+          <div class="settings-grid usual-hours" id="usual-hours"></div><div id="weekly-hours"></div>
         </section>
         <section class="settings-card" aria-labelledby="prices-heading">
-          <div class="settings-heading"><div><h2 id="prices-heading">Durations &amp; base prices</h2><p class="field-help" id="prices-currency"></p></div><button class="secondary-button" id="add-tariff" type="button">Add price</button></div>
-          <p class="field-help">Set the base price for each duration. A price of 0 means free.</p>
-          <div id="tariff-rows"></div><p class="settings-empty" id="tariffs-empty">No prices published yet.</p>
+          <h2 id="prices-heading">Durations &amp; prices</h2><p class="field-help" id="prices-currency"></p>
+          <p class="field-help">Each facility sets its own price for 60, 90 and 120 minutes. Switch on the durations you offer and enter their prices. A price of 0 means free.</p>
+          <div class="duration-prices" id="tariff-rows"></div><p class="settings-empty" id="tariffs-empty">Choose a duration and set its price to accept bookings.</p>
           <div class="pricing-rules"><h3>Busy-time increases</h3><div class="settings-grid">
             <div><label for="weekend-percent">Saturday &amp; Sunday increase (%)</label><input id="weekend-percent" type="number" min="0" max="100" step="0.01" value="10" required></div>
             <div><label for="evening-percent">6–9 pm increase (%)</label><input id="evening-percent" type="number" min="0" max="100" step="0.01" value="10" required></div>
           </div><p class="field-help">Increases add together. Any overlap applies to the whole booking. Use 0 to disable an increase.</p><p class="pricing-description" id="pricing-description"></p></div>
         </section>
-        <div class="settings-actions"><button class="primary-button" id="save-facility" type="submit">Save facility</button><a class="text-link" id="cancel-facility" href="account.html">Back to workspace</a></div>
+        <div class="settings-actions"><button class="primary-button" id="save-facility" type="submit">Save facility</button><a class="text-link" id="manage-closures" href="account.html" hidden>Manage closures</a><a class="text-link" id="cancel-facility" href="account.html">Back to workspace</a></div>
       </fieldset>
     </form>
     <p class="form-message" id="facility-message" role="status" hidden></p>

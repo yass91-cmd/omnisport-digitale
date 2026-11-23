@@ -15,8 +15,6 @@ function setSport(value,announce=true){
   selectedSport=value;
   const sport=SPORTS[value];
   document.body.dataset.sport=value;
-  document.documentElement.style.setProperty("--accent",sport.accent);
-  document.documentElement.style.setProperty("--accent-rgb",sport.rgb);
   document.querySelectorAll("[data-sport-choice]").forEach(button=>{
     const active=button.dataset.sportChoice===value;
     button.classList.toggle("is-active",active);

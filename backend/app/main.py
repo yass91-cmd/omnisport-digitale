@@ -16,10 +16,13 @@ from starlette.exceptions import HTTPException
 
 from .auth import router as auth_router
 from .auth import staff_router
+from .availability import router as availability_router
+from .bookings import router as bookings_router
 from .catalog import router
 from .config import ROOT, Settings
 from .database import make_engine
 from .facilities import router as facilities_router
+from .notifications import router as notifications_router
 from .pricing import router as pricing_router
 
 logger = logging.getLogger(__name__)
@@ -46,7 +49,18 @@ class PublicFiles(StaticFiles):
         response = await super().get_response(path, scope)
         response.headers["Cache-Control"] = (
             "no-store"
-            if path in {"account.html", "workspace.html", "facility.html"}
+            if path
+            in {
+                "account.html",
+                "workspace.html",
+                "facility.html",
+                "closures.html",
+                "availability.html",
+                "staff.html",
+                "bookings.html",
+                "staff-bookings.html",
+                "notifications.html",
+            }
             else "no-cache"
         )
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -64,7 +78,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
         yield
         engine.dispose()
 
-    app = FastAPI(title="OmniSport Digitale API", version="0.4.0", lifespan=lifespan)
+    app = FastAPI(title="OmniSport Digitale API", version="0.11.2", lifespan=lifespan)
     app.state.settings = settings
     app.state.engine = engine
     app.state.sessions = sessionmaker(engine, expire_on_commit=False)
@@ -116,5 +130,8 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(staff_router)
     app.include_router(facilities_router)
     app.include_router(pricing_router)
+    app.include_router(availability_router)
+    app.include_router(bookings_router)
+    app.include_router(notifications_router)
     app.mount("/", PublicFiles(directory=ROOT / "frontend" / "dist", html=True), name="website")
     return app
