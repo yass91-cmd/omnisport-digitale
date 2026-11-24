@@ -66,7 +66,9 @@ class ClientNotification(Base):
     __tablename__ = "client_notifications"
     __table_args__ = (
         UniqueConstraint("reservation_id", "kind", name="uq_client_notifications_event"),
-        CheckConstraint("kind IN ('accepted', 'cancelled')", name="ck_client_notifications_kind"),
+        CheckConstraint(
+            "kind IN ('accepted', 'cancelled', 'rescheduled')", name="ck_client_notifications_kind"
+        ),
         Index("ix_client_notifications_owner", "client_id", "created_at", "id"),
     )
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -76,6 +78,20 @@ class ClientNotification(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime)
     read_at: Mapped[datetime | None] = mapped_column(DateTime)
     reservation: Mapped["Reservation"] = relationship()
+
+
+class MaintenanceChange(Base):
+    __tablename__ = "maintenance_changes"
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    closure_id: Mapped[UUID] = mapped_column(ForeignKey("facility_closures.id"))
+    reservation_id: Mapped[UUID] = mapped_column(ForeignKey("reservations.id"), index=True)
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    action: Mapped[str] = mapped_column(String(12))
+    old_start: Mapped[datetime] = mapped_column(DateTime)
+    old_end: Mapped[datetime] = mapped_column(DateTime)
+    new_start: Mapped[datetime | None] = mapped_column(DateTime)
+    new_end: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
 
 
 class Complex(Base):

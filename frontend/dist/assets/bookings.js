@@ -71,7 +71,7 @@ async function loadUpdates() {
       notificationSignature=signature;
       select("#client-updates-list").replaceChildren(...page.items.map(notice=>{
         const row=element("article","client-update"),copy=element("div","");
-        copy.append(element("strong","",notice.kind==="accepted"?"Your booking request was accepted":"Your reservation was cancelled"),element("p","field-help",`${notice.facility_name} · ${localDateTime(notice.starts_at)}–${notice.ends_at.slice(11,16)}`));
+        copy.append(element("strong","",notice.kind==="rescheduled"?"Your reservation was moved for maintenance":notice.kind==="accepted"?"Your booking request was accepted":"Your reservation was cancelled"),element("p","field-help",`${notice.facility_name} · ${localDateTime(notice.starts_at)}–${notice.ends_at.slice(11,16)}`));
         const button=element("button","secondary-button","Mark as read");button.type="button";
         button.addEventListener("click",async()=>{if(busy)return;busy=true;button.disabled=true;try{await accountRequest(`/api/v1/notifications/${encodeURIComponent(notice.id)}/read`,{method:"POST",csrfToken:account.csrf_token,body:{}});await loadUpdates();}catch(error){select("#client-updates-status").textContent=error.message;button.disabled=false;}finally{busy=false;}});
         row.append(copy,button);return row;

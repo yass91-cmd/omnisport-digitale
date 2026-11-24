@@ -1,7 +1,7 @@
 """Available-time previews and administrator-managed dated closures."""
 
 from datetime import UTC, date, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -10,7 +10,14 @@ from sqlalchemy import func, select
 
 from .auth import ComplexAdmin, ComplexAssignment
 from .facilities import owned_facility
-from .models import Complex, Facility, FacilityClosure, Reservation
+from .models import (
+    ClientNotification,
+    Complex,
+    Facility,
+    FacilityClosure,
+    MaintenanceChange,
+    Reservation,
+)
 from .pricing import DurationQuery, PriceBreakdown, calculate_price, local_start
 from .scheduling import LOCAL_DATETIME, bump_schedule, interval_is_open, local_instant, zone_for
 from .security import CsrfIdentity, Database, same_origin_write, utcnow
@@ -24,10 +31,19 @@ class ScheduleVersion(BaseModel):
     facility_version: Annotated[int, Field(strict=True, ge=1)]
 
 
+class ClosureResolution(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reservation_id: UUID
+    version: Annotated[int, Field(strict=True, ge=1)]
+    action: Literal["cancel", "reschedule"]
+    starts_local: Annotated[str | None, Field(pattern=LOCAL_DATETIME)] = None
+
+
 class ClosureInput(ScheduleVersion):
     starts_local: Annotated[str, Field(pattern=LOCAL_DATETIME)]
     ends_local: Annotated[str, Field(pattern=LOCAL_DATETIME)]
     reason: Annotated[str, Field(min_length=1, max_length=500)]
+    resolutions: list[ClosureResolution] = Field(default_factory=list, max_length=500)
 
     @field_validator("reason", mode="before")
     @classmethod
@@ -194,6 +210,68 @@ def admin_availability(
     }
 
 
+@router.post(
+    "/staff/complexes/{complex_id}/facilities/{facility_id}/closures/preview",
+    dependencies=[Depends(same_origin_write)],
+)
+def preview_closure(
+    facility_id: UUID,
+    data: ClosureInput,
+    assignment: ComplexAdmin,
+    identity: CsrfIdentity,
+    session: Database,
+):
+    from .bookings import booking_read
+
+    facility = owned_facility(session, assignment, facility_id)
+    start = local_instant(data.starts_local, facility.complex.timezone)
+    end = local_instant(data.ends_local, facility.complex.timezone)
+    if start >= end or end <= utcnow():
+        raise HTTPException(422, "The end must follow the start and be in the future.")
+    rows = session.scalars(
+        select(Reservation)
+        .where(
+            Reservation.facility_id == facility.id,
+            Reservation.status.in_(["pending", "confirmed"]),
+            Reservation.starts_at < end,
+            Reservation.ends_at > start,
+        )
+        .order_by(Reservation.starts_at, Reservation.id)
+    ).all()
+    return {"facility_version": facility.version, "items": [booking_read(row) for row in rows]}
+
+
+@router.get("/staff/complexes/{complex_id}/facilities/{facility_id}/closures/history")
+def maintenance_history(facility_id: UUID, assignment: ComplexAdmin, session: Database):
+    facility = owned_facility(session, assignment, facility_id)
+    rows = session.execute(
+        select(MaintenanceChange, Reservation.reference)
+        .join(Reservation, Reservation.id == MaintenanceChange.reservation_id)
+        .where(Reservation.facility_id == facility.id)
+        .order_by(MaintenanceChange.created_at.desc(), MaintenanceChange.id)
+        .limit(100)
+    ).all()
+    zone = zone_for(facility)
+
+    def local(value):
+        return value.replace(tzinfo=UTC).astimezone(zone) if value else None
+
+    return {
+        "items": [
+            {
+                "reference": ref,
+                "action": row.action,
+                "old_start": local(row.old_start),
+                "old_end": local(row.old_end),
+                "new_start": local(row.new_start),
+                "new_end": local(row.new_end),
+                "created_at": local(row.created_at),
+            }
+            for row, ref in rows
+        ]
+    }
+
+
 def closure_read(row, zone):
     return {
         "id": row.id,
@@ -270,21 +348,74 @@ def create_closure(
     )
     if overlap:
         raise HTTPException(409, "This closure overlaps another active closure.")
-    booked = session.scalar(
-        select(Reservation.id)
+    bookings = session.scalars(
+        select(Reservation)
         .where(
             Reservation.facility_id == facility.id,
             Reservation.status.in_(["pending", "confirmed"]),
             Reservation.starts_at < end,
             Reservation.ends_at > start,
         )
-        .limit(1)
         .with_for_update()
-    )
-    if booked:
+        .execution_options(populate_existing=True)
+    ).all()
+    decisions = {item.reservation_id: item for item in data.resolutions}
+    if len(decisions) != len(data.resolutions) or set(decisions) != {item.id for item in bookings}:
         raise HTTPException(
-            409, "A pending or confirmed booking overlaps this closure. Resolve it first."
+            409, "Review all affected bookings and choose a new time or cancellation for each."
         )
+    # Validate every destination before changing any booking. Facility lock serializes
+    # closures and reservations, and current reads avoid stale MySQL snapshots.
+    occupied = session.scalars(
+        select(Reservation)
+        .where(
+            Reservation.facility_id == facility.id,
+            Reservation.status.in_(["pending", "confirmed"]),
+        )
+        .with_for_update()
+    ).all()
+    closures = session.scalars(
+        select(FacilityClosure)
+        .where(
+            FacilityClosure.facility_id == facility.id,
+            FacilityClosure.active.is_(True),
+        )
+        .with_for_update()
+    ).all()
+    blocked = [(item.starts_at, item.ends_at) for item in occupied if item.id not in decisions]
+    blocked += [(item.starts_at, item.ends_at) for item in closures] + [(start, end)]
+    destinations = {}
+    for booking in bookings:
+        decision = decisions[booking.id]
+        if (
+            booking.version != decision.version
+            or booking.arrived_at is not None
+            or booking.starts_at <= utcnow()
+        ):
+            raise HTTPException(
+                409, "A booking changed or has already started. Review the affected bookings again."
+            )
+        if decision.action == "reschedule":
+            if not decision.starts_local:
+                raise HTTPException(422, "Choose a new start time for each rescheduled booking.")
+            new_start = local_instant(decision.starts_local, facility.complex.timezone)
+            try:
+                new_end = new_start + timedelta(minutes=booking.minutes)
+            except OverflowError:
+                raise HTTPException(422, "Choose another date.") from None
+            local = new_start.replace(tzinfo=UTC).astimezone(zone_for(facility))
+            if new_start <= utcnow() or not interval_is_open(
+                local, booking.minutes, facility.opening_hours
+            ):
+                raise HTTPException(
+                    422, "The new time must be in the future and inside opening hours."
+                )
+            if any(left < new_end and right > new_start for left, right in blocked):
+                raise HTTPException(
+                    409, "A replacement time is occupied or closed. Choose another time."
+                )
+            destinations[booking.id] = (new_start, new_end)
+            blocked.append((new_start, new_end))
     bump_schedule(session, facility, data.facility_version)
     row = FacilityClosure(
         facility_id=facility.id,
@@ -295,10 +426,57 @@ def create_closure(
         created_at=utcnow(),
     )
     session.add(row)
+    session.flush()
+    for booking in bookings:
+        decision = decisions[booking.id]
+        destination = destinations.get(booking.id)
+        session.add(
+            MaintenanceChange(
+                closure_id=row.id,
+                reservation_id=booking.id,
+                actor_id=identity.user.id,
+                action=decision.action,
+                old_start=booking.starts_at,
+                old_end=booking.ends_at,
+                new_start=destination[0] if destination else None,
+                new_end=destination[1] if destination else None,
+                created_at=utcnow(),
+            )
+        )
+        if destination:
+            booking.starts_at, booking.ends_at = destination
+        else:
+            booking.status = "cancelled"
+            booking.cancelled_by = identity.user.id
+            booking.cancelled_at = utcnow()
+        booking.version += 1
+        if booking.client_id:
+            kind = "rescheduled" if destination else "cancelled"
+            notice = session.scalar(
+                select(ClientNotification)
+                .where(
+                    ClientNotification.reservation_id == booking.id,
+                    ClientNotification.kind == kind,
+                )
+                .with_for_update()
+            )
+            if notice:
+                notice.read_at = None
+                notice.created_at = utcnow()
+            else:
+                session.add(
+                    ClientNotification(
+                        client_id=booking.client_id,
+                        reservation_id=booking.id,
+                        kind=kind,
+                        created_at=utcnow(),
+                    )
+                )
     session.commit()
     return {
         "closure": closure_read(row, zone_for(facility)),
         "facility_version": data.facility_version + 1,
+        "resolved_bookings": len(bookings),
     }
 
 
