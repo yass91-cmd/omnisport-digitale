@@ -1,0 +1,263 @@
+/* Shared color system: soft light by default, muted graphite by choice. */
+:root, :root[data-theme="light"] {
+  color-scheme:light;
+  --bg:#edf1f5; --text:#253548; --muted:#526478; --line:#c8d2dc;
+  --panel:#f9fbfd; --panel-subtle:#e7edf3; --field:#f1f5f8; --control-line:#7b8b9b;
+  --accent:#355e75; --accent-rgb:53,94,117; --soft-accent:#e2ebf1;
+  --action:#355e75; --action-text:#f7f9fc; --button-secondary:#e7edf3;
+  --focus:#456e93; --disabled-bg:#dde4eb;
+  --badge-bg:#e2ebf3; --badge-text:#355975;
+  --info-bg:#e2edf6; --info-text:#355c7b; --info-line:#91adc3;
+  --available-bg:#e6efe9; --available-text:#32644f; --available-line:#91ad9d;
+  --reserved-bg:#f3ead8; --reserved-text:#775d28; --reserved-line:#baa77c;
+  --danger-bg:#f3e5e4; --danger-text:#93453f; --danger-line:#c29793;
+  --shadow:0 4px 14px rgba(33,51,70,.06),0 1px 2px rgba(33,51,70,.04);
+  --shadow-raised:0 12px 32px rgba(33,51,70,.09);
+  --court-color:#779985; --court-edge:#456b5a; --court-lines:#ecf2ed;
+  font-family:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:#242a32; --text:#d9e0e7; --muted:#b2becb; --line:#515e6b;
+  --panel:#303943; --panel-subtle:#29323c; --field:#262f39; --control-line:#8a98a8;
+  --accent:#acc4d5; --accent-rgb:172,196,213; --soft-accent:#394b59;
+  --action:#acc4d5; --action-text:#24323e; --button-secondary:#3a4652;
+  --focus:#b0c9df; --disabled-bg:#46515d;
+  --badge-bg:#3d4c5a; --badge-text:#cadce9;
+  --info-bg:#354a5d; --info-text:#c0d9ed; --info-line:#718ca2;
+  --available-bg:#344a40; --available-text:#b6d5c5; --available-line:#7d9d8b;
+  --reserved-bg:#514737; --reserved-text:#e0cda8; --reserved-line:#a38f69;
+  --danger-bg:#513d40; --danger-text:#e7bdb9; --danger-line:#b38b89;
+  --shadow:0 4px 14px rgba(10,15,22,.1),0 1px 2px rgba(10,15,22,.1);
+  --shadow-raised:0 12px 32px rgba(10,15,22,.18);
+}
+[data-sport="football"] { --accent:#32644f; --accent-rgb:50,100,79; --soft-accent:#e2ede6; --court-color:#779985; --court-edge:#456b5a; }
+[data-sport="basketball"] { --accent:#954526; --accent-rgb:149,69,38; --soft-accent:#f2e5dd; --court-color:#bd8b6c; --court-edge:#8b5d43; }
+[data-sport="tennis"] { --accent:#796019; --accent-rgb:121,96,25; --soft-accent:#eee9d8; --court-color:#a4a57c; --court-edge:#74764e; }
+:root[data-theme="dark"] [data-sport="football"] { --accent:#b0cfbc; --accent-rgb:176,207,188; --soft-accent:#344c3e; }
+:root[data-theme="dark"] [data-sport="basketball"] { --accent:#dfbda7; --accent-rgb:223,189,167; --soft-accent:#514238; }
+:root[data-theme="dark"] [data-sport="tennis"] { --accent:#d9cc9c; --accent-rgb:217,204,156; --soft-accent:#4b4737; }
+html,body { background:var(--bg); color:var(--text); }
+body { line-height:1.55; }
+body.directory { background:var(--bg); }
+.site-header { border-bottom:1px solid var(--line); gap:20px; }
+.header-nav { flex-wrap:wrap; justify-content:flex-end; gap:18px; }
+.header-nav > a { color:var(--muted); }
+.brand img { filter:saturate(.45); }
+.theme-toggle { min-height:44px; padding:9px 14px; border:1px solid var(--control-line); border-radius:9px; background:var(--panel); color:var(--text); white-space:nowrap; font-size:14px; }
+.theme-toggle:hover { background:var(--panel-subtle); }
+:is(button,a,input,select,textarea):focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
+.primary-button { background:var(--action); color:var(--action-text); font-size:16px; border:1px solid transparent; border-radius:10px; box-shadow:var(--shadow); }
+.primary-button:hover { transform:translateY(-1px); box-shadow:var(--shadow-raised); }
+.primary-button:disabled { background:var(--disabled-bg); color:var(--muted); box-shadow:none; transform:none; }
+.secondary-button { background:var(--button-secondary); color:var(--text); border-color:var(--control-line); }
+.text-link { color:var(--accent); border-color:rgba(var(--accent-rgb),.35); font-size:15px; }
+.directory h1, .account-intro h1 { font-family:inherit; font-size:clamp(30px,4vw,48px); line-height:1.15; font-weight:650; letter-spacing:-1.3px; }
+.staff-ui .account-intro h1 { font-family:inherit; font-weight:650; }
+.directory :is(.complex-title,.directory-title), .directory h1.editor-title { font-size:clamp(30px,4vw,48px); }
+.eyebrow { color:var(--muted); font-size:14px; font-weight:500; letter-spacing:.2px; text-transform:none; }
+.directory-main > .eyebrow, .account-intro > .eyebrow { display:none; }
+:is(.account-panel,.settings-card,.facility-card,.complex-card,.account-dialog) { background:var(--panel); color:var(--text); border-color:var(--line); box-shadow:var(--shadow); }
+.account-panel { border-radius:18px; }
+.account-panel :is(input,.password-field) { background:var(--field); color:var(--text); border-color:var(--control-line); }
+.password-field input { background:transparent; }
+.account-panel :is(.account-email,.account-lead) { color:var(--muted); }
+.account-court { opacity:.65; border:1px solid var(--line); }
+.settings-card :is(input:not([type="checkbox"]),select,textarea) { background-color:var(--field); color:var(--text); border-color:var(--control-line); color-scheme:inherit; }
+.settings-card :is(input,select,textarea)::placeholder, .account-panel input::placeholder { color:var(--muted); opacity:1; }
+.settings-card h2 { font-size:23px; font-weight:650; }
+:is(.field-help,.settings-empty,.catalog-note,.complex-location,.editor-context,.directory-intro) { color:var(--muted); }
+.form-message { color:var(--danger-text); border-color:var(--danger-line); }
+.form-message.is-success { color:var(--available-text); border-color:var(--available-line); }
+.auth-tabs { background:var(--panel-subtle); border-color:var(--line); }
+.auth-tabs button[aria-pressed="true"] { background:var(--action); color:var(--action-text); }
+.client-type-options label { background:var(--field); border-color:var(--control-line); }
+.client-type-options label:has(input:checked) { background:var(--soft-accent); border-color:var(--accent); }
+input:is([type="checkbox"],[type="radio"]) { accent-color:var(--accent); }
+.role-badge { color:var(--badge-text); background:var(--badge-bg); border-color:var(--control-line); }
+.staff-link { background:var(--panel); border-color:var(--line); }
+.staff-link span { color:var(--muted); }
+.staff-link:hover { background:var(--panel-subtle); }
+.staff-ui .workspace-sport { position:relative; border-top:1px solid var(--line); background:var(--panel-subtle); box-shadow:var(--shadow); }
+.sport-section-header { min-height:92px; justify-content:flex-start; gap:20px; }
+.sport-section-title { flex:1; display:block; }
+.sport-section-title > .field-help { display:block; margin-top:4px; }
+.staff-ui .workspace-sport .facility-grid:has(> .facility-card:only-child) { grid-template-columns:1fr; }
+.staff-ui .workspace-sport .facility-grid > .facility-card:only-child { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:24px; }
+.staff-ui .workspace-sport .facility-grid > .facility-card:only-child > :is(.status-badge,h4,.facility-surface) { grid-column:1; }
+.staff-ui .workspace-sport .facility-grid > .facility-card:only-child .facility-actions { grid-column:2; grid-row:1 / span 3; align-self:center; margin:0; }
+.staff-ui .workspace-sport .facility-card { background:var(--panel); box-shadow:0 2px 4px rgba(20,40,60,.04); }
+.sport-filter { border-color:var(--control-line); background:var(--panel); }
+.sport-filter[aria-pressed="true"] { color:var(--accent); background:var(--soft-accent); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.staff-ui .booking-card { border-top-width:2px; }
+.duration-price-card { box-shadow:none; }
+.settings-card .day-hours-periods { border-left:2px solid var(--line); margin-left:8px; padding-left:20px; }
+.remove-setting { color:var(--danger-text); border-color:var(--danger-line); }
+.notification-count { background:var(--info-bg); color:var(--info-text); border:1px solid var(--info-line); }
+.staff-link .notification-count { color:var(--info-text); }
+.pricing-description { color:var(--muted); }
+.timetable-details :is(span,small) { color:var(--muted); }
+.available-ranges { display:flex; flex-wrap:wrap; align-items:center; gap:8px 24px; min-width:0; }
+.available-range { font-size:16px; white-space:nowrap; }
+.clickable-card { position:relative; cursor:pointer; }
+.card-link { color:inherit; text-decoration:none; }
+.card-link::after { content:""; position:absolute; inset:0; z-index:1; border-radius:inherit; }
+.clickable-card:hover { border-color:var(--accent); }
+.clickable-card:has(.card-link:focus-visible) { outline:3px solid var(--focus); outline-offset:3px; }
+.card-link:focus-visible { outline:none; }
+.clickable-card .facility-summary { position:relative; z-index:2; cursor:auto; }
+.clickable-card .facility-summary summary { cursor:pointer; }
+.card-cue { pointer-events:none; }
+.client-dashboard .account-shell { grid-template-columns:minmax(0,1fr); max-width:960px; gap:20px; padding-top:36px; }
+.client-dashboard .account-intro { padding:0; }
+.client-dashboard .account-intro h1 { font-size:34px; }
+.client-dashboard .account-court { display:none; }
+.client-dashboard .account-panel { width:100%; padding:28px; }
+.client-dashboard .account-panel h2 { font-size:24px; line-height:1.35; margin:16px 0 6px; }
+.client-dashboard .account-email { margin:0; font-size:14px; }
+.client-dashboard .client-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:24px; padding-top:24px; }
+.client-action { display:grid; gap:8px; padding:22px; min-height:112px; border:1px solid var(--control-line); border-radius:10px; background:var(--panel-subtle); color:var(--text); text-decoration:none; }
+.client-action:hover { border-color:var(--action); background:var(--soft-accent); }
+.client-action strong { font-size:20px; }
+.client-action span { color:var(--muted); font-size:15px; }
+.client-dashboard .session-note { display:none; }
+.history-heading,.updates-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.history-heading h1 { margin-bottom:16px; }
+.history-heading button { flex-shrink:0; }
+.request-receipt { border-left:4px solid var(--focus); }
+.request-receipt p { color:var(--muted); margin-bottom:0; }
+.client-update { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px 0; border-top:1px solid var(--line); }
+.client-update > div { min-width:0; }
+.client-update p { margin:6px 0 0; }
+.client-update button { flex-shrink:0; margin:0; }
+@media (max-width:600px) { .client-update { align-items:flex-start; flex-direction:column; } }
+@media (max-width:600px) { .client-dashboard .client-actions { grid-template-columns:1fr; } .client-dashboard .account-panel { padding:22px; } }
+.facility-summary :is(ul,p) { color:var(--muted); }
+.facility-card :is(p,.facility-surface) { color:var(--muted); }
+.directory-filters button { color:var(--muted); background:var(--panel); border-color:var(--control-line); }
+.directory-filters button[aria-pressed="true"] { color:var(--action-text); background:var(--action); border-color:var(--action); }
+.sport-label { color:var(--accent); background:var(--soft-accent); border-color:rgba(var(--accent-rgb),.3); }
+.empty-directory { background:var(--panel); border-color:var(--line); }
+.complex-card-art { filter:saturate(.65); }
+.demo-badge { color:var(--muted); background:var(--panel); border-color:var(--control-line); font-size:14px; }
+.city-filter select { background-color:var(--field); color:var(--text); border-color:var(--control-line); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23526478' stroke-width='2'%3E%3Cpath d='m5 7 5 5 5-5'/%3E%3C/svg%3E"); background-size:18px; }
+:root[data-theme="dark"] :is(.staff-ui,.sport-ui) .settings-card select,
+:root[data-theme="dark"] .city-filter select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23b2becb' stroke-width='2'%3E%3Cpath d='m5 7 5 5 5-5'/%3E%3C/svg%3E"); }
+.sign-in { border-color:var(--control-line); }
+.sign-in:hover { background:var(--panel-subtle); }
+.comfort-court { flex:0 0 116px; width:116px; height:82px; perspective:500px; display:grid; place-items:center; pointer-events:none; }
+.court-slab { position:relative; width:102px; height:64px; transform:rotateX(52deg) rotateZ(-22deg); transform-style:preserve-3d; border-radius:5px; background:var(--court-color); border:1px solid var(--court-edge); box-shadow:0 8px 0 var(--court-edge),8px 19px 16px rgba(25,45,65,.13); }
+.court-slab svg { width:100%; height:100%; stroke:var(--court-lines); fill:none; stroke-width:2; }
+.hero h1 { font-family:inherit; font-weight:650; font-size:clamp(54px,6.5vw,104px); letter-spacing:-4px; line-height:1.02; }
+.hero h1 .accent-word { color:inherit; }
+.hero-description { color:var(--muted); font-size:18px; max-width:420px; }
+.hero-copy { max-width:600px; }
+.hero .eyebrow { color:var(--accent); font-size:15px; letter-spacing:.2px; }
+.hero .eyebrow-line, .hero-outline { display:none; }
+.hero-media { background:none; }
+.media-shade { opacity:0; }
+.hero-media.has-video .media-shade { opacity:1; background:linear-gradient(90deg,rgba(237,241,245,.95),rgba(237,241,245,.55) 50%,rgba(237,241,245,.08)); }
+:root[data-theme="dark"] .hero-media.has-video .media-shade { background:linear-gradient(90deg,rgba(36,42,50,.95),rgba(36,42,50,.5) 50%,rgba(36,42,50,.1)); }
+.sport-choice { background:var(--panel); color:var(--muted); border-color:var(--control-line); min-height:48px; font-size:15px; }
+.sport-choice:is(:hover,.is-active) { color:var(--accent); background:var(--soft-accent); border-color:var(--accent); transform:none; }
+.landing-footer { border-color:var(--line); }
+.landing-footer > p { color:var(--muted); letter-spacing:.3px; font-size:14px; }
+:is(.quiet-button,.sound-toggle) { color:var(--muted); font-size:14px; }
+.control-divider { background:var(--line); }
+.intro-play,.skip-intro:hover { background:var(--action); color:var(--action-text); }
+.intro-dialog :is(.intro-toolbar,.intro-toolbar button) { color:#edf2f5; }
+.skip-link { color:var(--action-text); background:var(--action); }
+@media (max-width:900px) {
+  .staff-ui .workspace-sport .facility-grid > .facility-card:only-child { display:block; }
+  .staff-ui .workspace-sport .facility-grid > .facility-card:only-child .facility-actions { margin-top:20px; }
+}
+@media (max-width:760px) {
+  .site-header { min-height:100px; height:auto; padding-block:14px; align-items:center; }
+  .header-nav { max-width:180px!important; gap:6px 12px; font-size:14px!important; }
+  .theme-toggle { min-height:40px; padding:7px 11px; }
+  .comfort-court { width:84px; flex-basis:84px; height:65px; }
+  .court-slab { width:76px; height:50px; }
+  .sport-section-header { flex-direction:row; flex-wrap:wrap; gap:10px 14px; }
+  .sport-section-title { flex:1; min-width:130px; gap:4px; }
+  .sport-add { margin-left:auto; }
+  .hero { padding-top:clamp(240px,38svh,320px); }
+  .hero-copy { max-width:100%; }
+  .hero h1 { font-size:clamp(48px,12vw,72px); letter-spacing:-2.5px; }
+  .hero-description { font-size:16px; max-width:100%; }
+  .landing-footer { padding-block:12px; }
+  .experience-controls { flex-wrap:wrap; gap:10px 18px; }
+}
+@media (max-width:380px) {
+  .brand { font-size:12px; gap:7px; }
+  .brand-sub { font-size:9px; }
+  .site-header { padding-inline:18px; gap:10px; }
+  .header-nav { max-width:128px!important; }
+  .theme-toggle { font-size:13px; }
+  .sport-section-header { column-gap:8px; }
+  .comfort-court { flex-basis:66px; width:66px; }
+  .court-slab { width:62px; height:42px; }
+}
+@media (max-width:760px) and (max-height:500px) {
+  .hero { padding-top:24px; }
+  .hero-copy { max-width:66%; }
+  .hero h1 { font-size:42px; }
+  .hero-description { font-size:15px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important; }
+  .primary-button,.sport-choice { transition:none; transform:none; }
+}
+
+/* Keep a single inset chevron even when the field background is reset above. */
+:root :is(.staff-ui,.sport-ui) .settings-card select,
+:root .city-filter select {
+  appearance:none; padding-right:42px;
+  background-repeat:no-repeat; background-position:right 12px center; background-size:18px 18px;
+  background-color:var(--field); color:var(--text); color-scheme:inherit;
+}
+select option { background-color:var(--field); color:var(--text); }
+.status-badge.pending { background:var(--reserved-bg); color:var(--reserved-text); border-color:var(--reserved-line); }
+.booking-status-filters { display:flex; gap:8px; flex-wrap:wrap; margin:20px 0 16px; }
+.booking-status-filters button { min-height:44px; margin:0; }
+.booking-status-filters button[aria-pressed="true"] { background:var(--action); color:var(--action-text); border-color:var(--action); }
+.booking-feedback { padding:12px 16px; background:var(--available-bg); color:var(--available-text); border:1px solid var(--available-line); border-radius:8px; }
+.bookings-list, .staff-ui .bookings-list { grid-template-columns:minmax(0,1fr); gap:10px; }
+.booking-row, .staff-ui .booking-row {
+  display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(130px,.85fr);
+  align-items:center; gap:16px; padding:16px 18px; margin:0; border-radius:9px;
+  border-top:1px solid var(--line); border-left:3px solid var(--accent);
+}
+.staff-ui .booking-row { grid-template-columns:minmax(0,1.4fr) minmax(0,.9fr) minmax(0,1fr) minmax(115px,.65fr); }
+.booking-row > div { min-width:0; }
+.bookings-list .booking-row h2 { font-size:17px; line-height:1.35; margin:5px 0; letter-spacing:0; }
+.bookings-list .booking-row p { line-height:1.5; margin:4px 0 0; }
+.bookings-list .booking-row .booking-time { color:var(--muted); font-size:14px; margin:4px 0 0; }
+.bookings-list .booking-row .booking-contact { display:grid; gap:3px; border:0; padding:0; margin:0; overflow-wrap:anywhere; }
+.bookings-list .booking-row .booking-contact strong { font-size:16px; }
+.bookings-list .booking-row .booking-contact :is(span,small) { font-size:14px; }
+.bookings-list .booking-row .booking-total { font-size:18px; color:var(--text); }
+.bookings-list .booking-row .booking-reference { font-size:12px; overflow-wrap:anywhere; }
+.booking-row-actions { display:flex; flex-direction:column; align-items:flex-end; gap:7px; text-align:right; }
+.booking-row-actions :is(button,small) { margin:0; }
+.booking-row-actions button { min-height:40px; padding:8px 12px; font-size:14px; }
+.booking-action-message:empty { display:none; }
+.assigned-complex-card { border:1px solid var(--line); background:var(--panel); border-radius:10px; margin:12px 0; overflow:hidden; }
+.assigned-complex-card .staff-link { border:0; border-radius:0; margin:0; box-shadow:none; }
+.assigned-people { border-top:1px solid var(--line); padding:14px 18px; }
+.assigned-people h3 { margin:0 0 10px; font-size:16px; }
+.assigned-people-list { list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+.assigned-person { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 10px; font-size:14px; }
+.assigned-person :is(span,small) { color:var(--muted); }
+.assigned-person small { grid-column:1/-1; overflow-wrap:anywhere; font-size:13px; }
+.assigned-people .field-help:empty { display:none; }
+.staff-ui #workspace-staff { border:1px solid var(--line); background:var(--panel); border-radius:10px; margin:24px 0; padding:0 18px 12px; }
+.staff-ui #workspace-staff summary { color:var(--text); font-weight:600; }
+@media (max-width:1000px) {
+  .booking-row, .staff-ui .booking-row { grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:12px 20px; }
+  .booking-row-actions { align-items:flex-start; text-align:left; }
+}
+@media (max-width:520px) {
+  .booking-row, .staff-ui .booking-row { grid-template-columns:minmax(0,1fr); padding:14px; }
+  .booking-row-actions { flex-direction:row; align-items:center; flex-wrap:wrap; }
+  .booking-row-actions small { flex-basis:100%; text-align:left; }
+}

@@ -15,7 +15,7 @@ export async function accountRequest(path, { method = "GET", body, csrfToken } =
     let message = typeof data.detail === "string" ? data.detail : "Please check the form and try again.";
     if (Array.isArray(data.detail) && data.detail[0]?.msg) {
       const issue = data.detail[0];
-      const labels = {name:"Name",surface:"Surface",amount:"Price",opens_at:"Opening time",closes_at:"Closing time",sport_id:"Sport",minutes:"Duration",email:"Email",password:"Password"};
+      const labels = {name:"Name",surface:"Surface",amount:"Price",opens_at:"Opening time",closes_at:"Closing time",sport_id:"Sport",minutes:"Duration",email:"Email",client_name:"Full name",client_phone:"Phone number",phone:"Phone number",client_role:"Account type",password:"Password",starts_local:"Start time",ends_local:"End time",reason:"Reason",facility_version:"Saved schedule"};
       const label = labels[issue.loc?.at(-1)];
       message = `${label ? `${label}: ` : ""}${issue.msg.replace(/^Value error,\s*/, "")}`;
     }

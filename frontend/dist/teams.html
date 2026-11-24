@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script src="assets/theme.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My teams — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/staff.css">
+  <link rel="stylesheet" href="assets/comfort.css">
+  <link rel="stylesheet" href="assets/teams.css?v=2">
+  <script type="module" src="assets/teams.js?v=2"></script>
+</head>
+<body class="directory">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="./"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a>
+    <nav class="header-nav" aria-label="Main navigation"><a href="complexes.html">Find a facility</a><a href="bookings.html">My bookings</a><a href="account.html">My account</a></nav>
+  </header>
+  <main class="directory-main teams-page" id="main">
+    <p id="team-status" class="team-status" role="status">Loading teams…</p>
+    <a id="team-login" href="account.html?return_to=%2Fteams.html" hidden>Sign in to see your teams</a>
+    <div id="team-content" hidden>
+      <section id="teams-home">
+        <div class="team-page-head">
+          <div><p class="eyebrow">Team space</p><h1>My teams</h1></div>
+          <div class="team-top-actions">
+            <a id="requests-toggle" class="secondary-button" href="team-inbox.html">Inbox</a>
+            <button id="find-toggle" class="secondary-button" type="button" hidden>Find a team</button>
+            <button id="create-toggle" class="primary-button" type="button" hidden>+ New team</button>
+          </div>
+        </div>
+        <form id="create-team" class="team-inline-form" hidden>
+          <div><label for="team-name">Team name</label><input id="team-name" name="name" maxlength="100" required></div>
+          <div><label for="team-sport">Sport</label><select id="team-sport" name="sport_id" required></select></div>
+          <button class="primary-button">Create</button><button id="create-cancel" class="secondary-button" type="button">Cancel</button>
+        </form>
+        <section id="teams-panel" aria-label="Your teams"><div id="owned-teams" class="team-grid"></div></section>
+        <section id="discover-panel" hidden>
+          <div class="team-subhead"><button id="find-back" class="text-button" type="button">← My teams</button><h2>Find a team</h2></div>
+          <label for="sport-filter">Sport</label><select id="sport-filter"><option value="">All sports</option></select>
+          <div id="open-teams" class="team-list"></div>
+          <div class="settings-actions"><button id="teams-prev" class="secondary-button" hidden>Previous</button><button id="teams-next" class="secondary-button" hidden>Next</button></div>
+        </section>
+      </section>
+      <section id="team-detail" hidden>
+        <button id="detail-back" class="text-button" type="button">← My teams</button>
+        <div class="team-page-head detail-head">
+          <div><p id="detail-sport" class="eyebrow"></p><h1 id="detail-name"></h1></div>
+          <div class="team-top-actions"><button id="add-player-toggle" class="primary-button" type="button" hidden>+ Add player</button></div>
+        </div>
+        <div class="roster-heading"><h2>Players</h2><span id="player-count" class="count-badge">0</span></div>
+        <div id="team-roster" class="roster-list"></div>
+      </section>
+      <section id="add-player-view" hidden>
+        <button id="add-player-back" class="text-button" type="button">← Team players</button>
+        <div class="team-page-head detail-head"><div><p class="eyebrow">Team member</p><h1>Add player</h1></div></div>
+        <form id="add-player-form" class="team-inline-form add-player-page-form">
+          <div><label for="player-name">Full name</label><input id="player-name" maxlength="100" required></div>
+          <div><label for="player-phone">Phone number</label><input id="player-phone" type="tel" maxlength="40" required></div>
+          <div><label for="player-email">Email <span>(optional)</span></label><input id="player-email" type="email" maxlength="254"></div>
+          <button class="primary-button">Add player</button><button id="add-player-cancel" class="secondary-button" type="button">Cancel</button>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,12 +1,13 @@
 import { accountRequest } from "./auth-api.js";
 import { element } from "./catalog-ui.js";
 import { pricingDescription } from "./pricing-rules.js";
+import { renderWeeklyHours, readWeeklyHours } from "./weekly-hours.js";
+import { applySport } from "./sport-ui.js";
 
 const select = value => document.querySelector(value);
 const query = new URLSearchParams(location.search);
 const complexId = query.get("complex_id");
 let facilityId = query.get("id"), version = null, account = null, sports = [], currency = "MAD", busy = false, sequence = 0;
-const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 function updatePricingDescription() {
   const weekend = select("#weekend-percent").value, evening = select("#evening-percent").value;
@@ -25,52 +26,21 @@ function labeledInput(row, label, control) {
 }
 
 function updateEmptyStates() {
-  select("#hours-empty").hidden = !!select("#opening-rows").children.length;
-  select("#tariffs-empty").hidden = !!select("#tariff-rows").children.length;
-  const controls = [...document.querySelectorAll('[data-field="minutes"]')];
-  const used = new Set(controls.map(node => Number(node.value)));
-  controls.forEach(node => [...node.options].forEach(option => {
-    option.disabled = option.value !== node.value && used.has(Number(option.value));
-  }));
-  select("#add-tariff").disabled = !allowedDurations().length || used.size >= allowedDurations().length;
-  select("#add-opening").disabled = select("#opening-rows").children.length >= 56;
-}
-
-function removeButton(row, title) {
-  const button = element("button", "remove-setting", "Remove"); button.type = "button";
-  button.setAttribute("aria-label", title);
-  button.addEventListener("click", () => { row.remove(); updateEmptyStates(); }); row.append(button);
-}
-
-function openingRow(data = null) {
-  const row = element("div", "opening-row");
-  const day = element("select"); day.dataset.field = "weekday";
-  weekdays.forEach((name, index) => { const option = element("option", "", name); option.value = String(index); day.append(option); });
-  const used = [...document.querySelectorAll('[data-field="weekday"]')].map(node => Number(node.value));
-  day.value = String(data?.weekday ?? Math.max(0, weekdays.findIndex((_, index) => !used.includes(index))));
-  labeledInput(row, "Day", day);
-  for (const [field, label] of [["opens_at", "Opening time"], ["closes_at", "Closing time"]]) {
-    const input = element("input"); input.type = "time"; input.step = "60"; input.required = true; input.dataset.field = field;
-    input.value = data?.[field] === "24:00" ? "00:00" : data?.[field] || "";
-    labeledInput(row, label, input);
-  }
-  removeButton(row, "Remove opening interval"); select("#opening-rows").append(row); updateEmptyStates();
+  select("#tariffs-empty").hidden = !!select("#tariff-rows").querySelector('[data-price-enabled]:checked');
 }
 
 function allowedDurations() { return sports.find(item => item.id === select("#facility-sport").value)?.allowed_durations || []; }
 
-function tariffRow(data = null) {
-  const allowed = allowedDurations();
-  if (!allowed.length) { showMessage("No booking durations are configured for this sport."); return; }
-  const row = element("div", "tariff-row"), duration = element("select"); duration.dataset.field = "minutes";
-  duration.addEventListener("change", updateEmptyStates);
-  allowed.forEach(value => { const option = element("option", "", `${value} min`); option.value = String(value); duration.append(option); });
-  const used = [...document.querySelectorAll('[data-field="minutes"]')].map(node => Number(node.value));
-  duration.value = String(data?.minutes ?? allowed.find(value => !used.includes(value)) ?? allowed[0]);
-  labeledInput(row, "Duration", duration);
-  const amount = element("input"); amount.type = "number"; amount.min = "0"; amount.max = "99999999.99"; amount.step = "0.01"; amount.required = true; amount.inputMode = "decimal"; amount.dataset.field = "amount"; amount.value = data?.amount ?? "";
-  labeledInput(row, `Price (${currency})`, amount); removeButton(row, "Remove duration price");
-  select("#tariff-rows").append(row); updateEmptyStates();
+function renderTariffs(tariffs) {
+  select("#tariff-rows").replaceChildren(...allowedDurations().map(minutes=>{
+    const saved=tariffs.find(row=>row.minutes===minutes),row=element("div","duration-price-card"),label=element("label","duration-price-toggle"),enabled=element("input");
+    row.dataset.minutes=String(minutes);enabled.type="checkbox";enabled.dataset.priceEnabled="";enabled.checked=!!saved;
+    enabled.setAttribute("aria-label",`Offer ${minutes} minutes`);label.append(enabled,element("strong","",`${minutes} min`));row.append(label);
+    const amount=element("input");amount.type="number";amount.min="0";amount.max="99999999.99";amount.step="0.01";amount.inputMode="decimal";amount.dataset.field="amount";amount.placeholder="Your facility’s price";amount.value=saved?.amount??"";
+    amount.disabled=!enabled.checked;amount.required=enabled.checked;labeledInput(row,`Price for ${minutes} min (${currency})`,amount);
+    const hint=element("p","field-help",enabled.checked?"Available to book":"Not offered until you set a price");row.append(hint);
+    enabled.addEventListener("change",()=>{amount.disabled=!enabled.checked;amount.required=enabled.checked;hint.textContent=enabled.checked?"Available after saving a price":"Not offered until you set a price";updateEmptyStates();if(enabled.checked)amount.focus();});return row;
+  }));updateEmptyStates();
 }
 
 function populate(data) {
@@ -83,11 +53,14 @@ function populate(data) {
   select("#weekend-percent").value = data?.weekend_percent ?? "10.00";
   select("#evening-percent").value = data?.evening_percent ?? "10.00";
   updatePricingDescription();
-  select("#opening-rows").replaceChildren(); select("#tariff-rows").replaceChildren();
-  (data?.opening_hours || []).forEach(openingRow); (data?.tariffs || []).forEach(tariffRow); updateEmptyStates();
-  select("#editor-heading").textContent = data ? "EDIT YOUR FACILITY." : "ADD A FACILITY.";
+  select("#tariff-rows").replaceChildren();
+  renderWeeklyHours(data?.opening_hours || []); renderTariffs(data?.tariffs || []);
+  applySport(document.body,sports.find(item=>item.id===select("#facility-sport").value)?.name);
+  select("#editor-heading").textContent = data ? "Edit facility" : "Add a facility";
   document.title = data ? `${data.name} settings — OmniSport Digitale` : "Add a facility — OmniSport Digitale";
   select("#save-facility").textContent = data ? "Save changes" : "Create facility";
+  select("#manage-closures").hidden = !data;
+  if (data) select("#manage-closures").href = `closures.html?complex_id=${encodeURIComponent(complexId)}&facility_id=${encodeURIComponent(data.id)}`;
 }
 
 async function initialize() {
@@ -119,16 +92,9 @@ async function initialize() {
 }
 
 select("#facility-sport").addEventListener("change", () => {
-  const allowed = allowedDurations();
-  document.querySelectorAll('[data-field="minutes"]').forEach(node => {
-    const previous = Number(node.value);
-    node.replaceChildren(...allowed.map(value => { const option = element("option", "", `${value} min`); option.value = String(value); return option; }));
-    if (allowed.includes(previous)) node.value = String(previous);
-  });
-  updateEmptyStates();
+  const tariffs=[...select("#tariff-rows").children].filter(row=>row.querySelector('[data-price-enabled]').checked).map(row=>({minutes:Number(row.dataset.minutes),amount:row.querySelector('[data-field="amount"]').value}));
+  renderTariffs(tariffs);applySport(document.body,sports.find(item=>item.id===select("#facility-sport").value)?.name);
 });
-select("#add-opening").addEventListener("click", () => openingRow());
-select("#add-tariff").addEventListener("click", () => tariffRow());
 select("#weekend-percent").addEventListener("input",updatePricingDescription);
 select("#evening-percent").addEventListener("input",updatePricingDescription);
 select("#editor-retry").addEventListener("click", initialize);
@@ -136,16 +102,18 @@ select("#reload-settings").addEventListener("click", initialize);
 
 select("#facility-form").addEventListener("submit", async event => {
   event.preventDefault(); if (busy) return;
+  let openingHours;
+  try {
+    openingHours = readWeeklyHours();
+  } catch (error) {showMessage(error.message);select("#facility-message").scrollIntoView({block:"nearest"});return;}
   const body = {
     name:select("#facility-name").value, sport_id:select("#facility-sport").value,
     surface:select("#facility-surface").value, description:select("#facility-description").value,
     active:select("#facility-active").checked,
     weekend_percent:select("#weekend-percent").value,
     evening_percent:select("#evening-percent").value,
-    opening_hours:[...select("#opening-rows").children].map(row => ({
-      weekday:Number(row.querySelector('[data-field="weekday"]').value), opens_at:row.querySelector('[data-field="opens_at"]').value, closes_at:row.querySelector('[data-field="closes_at"]').value,
-    })),
-    tariffs:[...select("#tariff-rows").children].map(row => ({minutes:Number(row.querySelector('[data-field="minutes"]').value), amount:row.querySelector('[data-field="amount"]').value})),
+    opening_hours:openingHours,
+    tariffs:[...select("#tariff-rows").children].filter(row=>row.querySelector('[data-price-enabled]').checked).map(row => ({minutes:Number(row.dataset.minutes), amount:row.querySelector('[data-field="amount"]').value})),
     ...(facilityId ? {version} : {}),
   };
   busy = true; select("#facility-fields").disabled = true; select("#facility-form").setAttribute("aria-busy", "true"); showMessage(""); select("#reload-settings").hidden = true;

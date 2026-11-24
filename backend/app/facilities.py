@@ -11,7 +11,8 @@ from sqlalchemy.exc import IntegrityError
 
 from .auth import ComplexAdmin
 from .models import Facility, FacilityTariff, OpeningHour, Sport, SportDuration
-from .security import CsrfIdentity, Database, same_origin_write
+from .scheduling import protect_confirmed_bookings
+from .security import CsrfIdentity, Database, same_origin_write, utcnow
 
 router = APIRouter(
     prefix="/api/v1/staff/complexes/{complex_id}/facilities",
@@ -198,6 +199,7 @@ def update_facility(
         raise HTTPException(409, "This facility changed since you opened it. Reload before saving.")
     validate_sport(session, data)
     try:
+        protect_confirmed_bookings(session, facility, data, utcnow())
         session.execute(delete(FacilityTariff).where(FacilityTariff.facility_id == facility.id))
         session.execute(delete(OpeningHour).where(OpeningHour.facility_id == facility.id))
         values = data.model_dump(exclude={"opening_hours", "tariffs", "version"})

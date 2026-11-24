@@ -110,7 +110,7 @@ class Identity:
     token: str
 
 
-def current_identity(request: Request, session: Database) -> Identity:
+def validated_identity(request: Request, session: Database, *, refresh: bool) -> Identity:
     token = request.cookies.get(request.app.state.settings.session_cookie, "")
     if len(token) != 43:
         raise HTTPException(401, "Please sign in to continue.")
@@ -127,12 +127,23 @@ def current_identity(request: Request, session: Database) -> Identity:
             session.delete(login)
             session.commit()
         raise HTTPException(401, "Please sign in to continue.")
-    login.last_seen_at = now
-    session.commit()
+    if refresh:
+        login.last_seen_at = now
+        session.commit()
     return Identity(login.user, login, token)
 
 
+def current_identity(request: Request, session: Database) -> Identity:
+    return validated_identity(request, session, refresh=True)
+
+
+def passive_identity(request: Request, session: Database) -> Identity:
+    # Background notification polling must not extend the user's idle session.
+    return validated_identity(request, session, refresh=False)
+
+
 CurrentIdentity = Annotated[Identity, Depends(current_identity)]
+PassiveIdentity = Annotated[Identity, Depends(passive_identity)]
 
 
 def require_csrf(

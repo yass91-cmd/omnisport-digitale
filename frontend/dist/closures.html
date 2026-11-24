@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="assets/theme.js"></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#10140f">
+  <title>Facility closures — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/staff.css">
+  <script type="module" src="assets/closures.js"></script>
+  <link rel="stylesheet" href="assets/comfort.css">
+</head>
+<body class="directory staff-ui">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a><nav class="header-nav" aria-label="Main navigation"><a id="closures-back" href="account.html">Facility settings</a></nav></header>
+  <main class="directory-main facility-editor" id="main">
+    <p class="eyebrow">KEEP YOUR SCHEDULE CLEAR</p><h1 class="editor-title">Facility closures</h1>
+    <p class="editor-context" id="closures-context"></p><p class="field-help" id="closures-timezone"></p>
+    <p id="closures-loading" role="status">Loading saved closures…</p>
+    <section class="empty-directory" id="closures-error" hidden><h2>We couldn’t load facility closures.</h2><p id="closures-error-message"></p><a class="text-link" href="account.html">Go to my account</a></section>
+    <div id="closures-view" hidden>
+      <a class="text-link" id="closures-preview" href="complexes.html">View available times</a>
+      <section class="settings-card" aria-labelledby="add-closure-heading">
+        <h2 id="add-closure-heading">Add a closure</h2><p class="field-help">Block a date or time when this facility is unavailable. Weekly opening hours stay in place.</p>
+        <form id="closure-form"><fieldset id="closure-fields"><div class="settings-grid">
+          <div><label for="closure-start">Closure starts</label><input id="closure-start" type="datetime-local" step="60" required></div>
+          <div><label for="closure-end">Closure ends</label><input id="closure-end" type="datetime-local" step="60" required></div>
+          <div class="settings-wide"><label for="closure-reason">Reason</label><textarea id="closure-reason" maxlength="500" rows="2" required></textarea><p class="field-help">The reason is visible only to this complex’s administrators.</p></div>
+        </div><button class="primary-button" type="submit">Add closure</button></fieldset></form>
+      </section>
+      <p class="form-message" id="closures-message" role="status" hidden></p><button class="secondary-button" id="closures-reload" hidden>Reload saved closures</button>
+      <section class="settings-card" aria-labelledby="saved-closures-heading"><h2 id="saved-closures-heading">Upcoming closures</h2><p class="field-help" id="closures-count"></p><div id="closure-list"></div><button class="secondary-button" id="closures-more" hidden>Load more closures</button></section>
+    </div>
+  </main>
+</body>
+</html>

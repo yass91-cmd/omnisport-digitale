@@ -50,7 +50,9 @@ export function createSportsScene(canvas, initiallyPaused = false) {
   let width = 0, height = 0, frame = 0, last = 0, time = .7;
   let sport = "football", paused = initiallyPaused;
   const pointer = { x: 0, y: 0, smoothX: 0, smoothY: 0 };
-  const accent = () => sport === "basketball" ? "255,186,128" : sport === "tennis" ? "225,237,130" : "196,243,107";
+  let palette;
+  const refreshPalette=()=>{const style=getComputedStyle(canvas);palette={accent:style.getPropertyValue('--accent-rgb').trim(),floor:style.getPropertyValue('--court-color').trim(),edge:style.getPropertyValue('--court-edge').trim(),lines:style.getPropertyValue('--court-lines').trim(),dark:document.documentElement.dataset.theme==='dark'};};
+  refreshPalette();
   const request = () => { if (!frame && !document.hidden) frame = requestAnimationFrame(render); };
   const resize = () => {
     const rect = canvas.getBoundingClientRect();
@@ -71,9 +73,14 @@ export function createSportsScene(canvas, initiallyPaused = false) {
 
   function court(cx, cy, size) {
     const project = (x,z) => [cx + x * size * (.52 + z * .47), cy + (z - .5) * size * .56];
+    const corners=[[-1.6,-.06],[1.6,-.06],[1.6,1.06],[-1.6,1.06]].map(([x,z])=>project(x,z));
+    const depth=size*.065;
+    path([corners[1],corners[2],[corners[2][0],corners[2][1]+depth],[corners[1][0],corners[1][1]+depth]],true);ctx.fillStyle=palette.edge;ctx.fill();
+    path([corners[2],corners[3],[corners[3][0],corners[3][1]+depth],[corners[2][0],corners[2][1]+depth]],true);ctx.fill();
+    path(corners,true);ctx.fillStyle=palette.floor;ctx.fill();
     const line = (points, opacity = .25, lw = 1) => {
       path(points.map(([x,z]) => project(x,z)));
-      ctx.strokeStyle = `rgba(${accent()},${opacity})`; ctx.lineWidth = lw; ctx.stroke();
+      ctx.strokeStyle = palette.lines;ctx.globalAlpha=Math.min(1,opacity*2.7);ctx.lineWidth = lw;ctx.stroke();ctx.globalAlpha=1;
     };
     const rect = (x1,z1,x2,z2,a) => line([[x1,z1],[x2,z1],[x2,z2],[x1,z2],[x1,z1]],a);
     rect(-1.5,0,1.5,1,.32);
@@ -94,14 +101,14 @@ export function createSportsScene(canvas, initiallyPaused = false) {
       const left=project(0,0),right=project(0,1);
       for(let i=0;i<=12;i++){
         const x=left[0]+(right[0]-left[0])*i/12,y=left[1]+(right[1]-left[1])*i/12;
-        path([[x,y],[x,y-size*.19]]);ctx.strokeStyle=`rgba(${accent()},.15)`;ctx.lineWidth=.6;ctx.stroke();
+        path([[x,y],[x,y-size*.19]]);ctx.strokeStyle=palette.lines;ctx.lineWidth=.6;ctx.stroke();
       }
-      path([[left[0],left[1]-size*.19],[right[0],right[1]-size*.19]]);ctx.strokeStyle=`rgba(${accent()},.4)`;ctx.stroke();
+      path([[left[0],left[1]-size*.19],[right[0],right[1]-size*.19]]);ctx.strokeStyle=palette.lines;ctx.stroke();
     }
   }
 
   function football(cx,cy,r,t) {
-    const rx = -.15 + pointer.smoothY*.1, ry = t*.12 + pointer.smoothX*.1;
+    const rx = -.15 + pointer.smoothY*.06, ry = t*.055 + pointer.smoothX*.06;
     const faces = footballFaces.map(face => {
       const points = face.points.map(p => rotate(p,rx,ry,-.13));
       const center = points[0].map((_,i) => points.reduce((sum,p) => sum+p[i],0)/points.length);
@@ -109,11 +116,11 @@ export function createSportsScene(canvas, initiallyPaused = false) {
     }).sort((a,b)=>a.center[2]-b.center[2]);
     const light=normalize([-.5,-.65,1]);
     faces.forEach(face => {
-      const brightness=.43+.57*Math.max(0,dot(normalize(face.center),light));
-      const base=face.dark?[32,42,25]:[233,241,220];
+      const brightness=.66+.34*Math.max(0,dot(normalize(face.center),light));
+      const base=face.dark?[43,57,62]:[225,232,234];
       path(face.points.map(([x,y,z])=>[cx+x*r*3.7/(3.7-z),cy+y*r*3.7/(3.7-z)]),true);
       ctx.fillStyle=`rgb(${base.map(c=>Math.round(c*brightness)).join(",")})`;ctx.fill();
-      ctx.strokeStyle="rgba(27,37,20,.85)";ctx.lineWidth=Math.max(.8,r/140);ctx.lineJoin="round";ctx.stroke();
+      ctx.strokeStyle="rgba(43,57,62,.75)";ctx.lineWidth=Math.max(.8,r/140);ctx.lineJoin="round";ctx.stroke();
     });
   }
 
@@ -138,13 +145,13 @@ export function createSportsScene(canvas, initiallyPaused = false) {
   }
 
   function basketball(cx,cy,r,t) {
-    sphere(cx,cy,r,["#f6b65c","#c76a25","#412210"]);
+    sphere(cx,cy,r,["#e1af86","#b5744d","#6e4e3f"]);
     ctx.fillStyle="rgba(25,16,8,.13)";
-    for(let i=0;i<2100;i++){
-      const a=i*2.39996,rr=Math.sqrt((i+.5)/2100)*r;
+    for(let i=0;i<750;i++){
+      const a=i*2.39996,rr=Math.sqrt((i+.5)/750)*r;
       ctx.beginPath();ctx.arc(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,.75,0,TAU);ctx.fill();
     }
-    const rx=.4,ry=t*.11;
+    const rx=.4,ry=t*.05;
     for(const offset of [0,Math.PI/2,Math.PI/4,-Math.PI/4]){
       const points=Array.from({length:181},(_,i)=>{
         const a=i/180*TAU;
@@ -156,18 +163,18 @@ export function createSportsScene(canvas, initiallyPaused = false) {
   }
 
   function tennis(cx,cy,r,t) {
-    sphere(cx,cy,r,["#f0f6aa","#c2d953","#4e601f"]);
+    sphere(cx,cy,r,["#dde3ab","#b1ba70","#6d794b"]);
     ctx.fillStyle="rgba(246,255,192,.25)";
-    for(let i=0;i<1500;i++){
-      const a=i*2.39996,rr=Math.sqrt((i+.5)/1500)*r;
+    for(let i=0;i<600;i++){
+      const a=i*2.39996,rr=Math.sqrt((i+.5)/600)*r;
       ctx.fillRect(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,1.3,.6);
     }
     const seam=Array.from({length:401},(_,i)=>{
       const a=i/400*TAU,z=.58*Math.cos(2*a),d=Math.sqrt(1-z*z);
       return [Math.cos(a)*d,Math.sin(a)*d,z];
     });
-    sphereLine(seam,cx,cy,r,.6,t*.12,"rgba(74,91,29,.6)",r*.065);
-    sphereLine(seam,cx,cy,r,.6,t*.12,"#f4f5d5",r*.042);
+    sphereLine(seam,cx,cy,r,.6,t*.05,"rgba(74,91,29,.6)",r*.065);
+    sphereLine(seam,cx,cy,r,.6,t*.05,"#f4f5d5",r*.042);
     ctx.restore();
   }
 
@@ -181,19 +188,12 @@ export function createSportsScene(canvas, initiallyPaused = false) {
     const mobile=width<=700&&window.innerHeight>600;
     const compact=width<=700&&!mobile;
     const cx=width*(mobile?.62:compact?.8:.752)+pointer.smoothX*9;
-    const cy=height*(mobile?.215:compact?.39:.445)+Math.sin(time*.8)*8+pointer.smoothY*6;
+    const cy=height*(mobile?.215:compact?.39:.445)+Math.sin(time*.45)*3+pointer.smoothY*3;
     const r=mobile?Math.min(width*.245,height*.135):compact?Math.min(width*.18,height*.18):Math.min(width*.165,height*.235);
     const floorY=height*(mobile?.36:compact?.69:.77);
-    const glow=ctx.createRadialGradient(cx,cy,0,cx,cy,r*2.1);
-    glow.addColorStop(0,`rgba(${accent()},.06)`);glow.addColorStop(1,`rgba(${accent()},0)`);
-    ctx.fillStyle=glow;ctx.fillRect(cx-r*2.1,cy-r*2.1,r*4.2,r*4.2);
-    for(let i=0;i<24;i++){
-      const x=cx+Math.sin(i*47.1)*r*2.1,y=height*.12+((i*67.3)%Math.max(height*.68,1));
-      ctx.beginPath();ctx.arc(x,y+Math.sin(time*.25+i)*5,i%3===0?1.2:.7,0,TAU);ctx.fillStyle=`rgba(${accent()},${i%4===0?.3:.12})`;ctx.fill();
-    }
     ctx.save();ctx.translate(cx,floorY);ctx.scale(1,.17);
     const shadow=ctx.createRadialGradient(0,0,0,0,0,r*1.1);
-    shadow.addColorStop(0,"rgba(0,0,0,.75)");shadow.addColorStop(1,"rgba(0,0,0,0)");
+    shadow.addColorStop(0,palette.dark?"rgba(0,0,0,.38)":"rgba(42,61,76,.22)");shadow.addColorStop(1,"rgba(42,61,76,0)");
     ctx.fillStyle=shadow;ctx.beginPath();ctx.arc(0,0,r*1.1,0,TAU);ctx.fill();ctx.restore();
     court(cx,floorY,r*(mobile?1.05:1.12));
     if(sport==="football")football(cx,cy,r,time);
@@ -212,8 +212,9 @@ export function createSportsScene(canvas, initiallyPaused = false) {
     else request();
   });
   resize();
+  window.addEventListener('omni-theme-change',()=>{refreshPalette();request();});
   return {
-    setSport(value){sport=value;request();},
+    setSport(value){sport=value;refreshPalette();request();},
     setPaused(value){paused=value;last=0;cancelAnimationFrame(frame);frame=0;request();},
   };
 }

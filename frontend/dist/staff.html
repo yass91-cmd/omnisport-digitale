@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="assets/theme.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#10140f"><title>Staff access — OmniSport Digitale</title><link rel="icon" href="assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css"><link rel="stylesheet" href="assets/staff.css"><script type="module" src="assets/staff.js"></script>  <link rel="stylesheet" href="assets/comfort.css">
+</head>
+<body class="directory account-page staff-ui">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a><nav class="header-nav" aria-label="Main navigation"><a href="account.html">Player / Coach access</a></nav></header>
+  <main class="account-shell" id="main"><section class="account-intro"><p class="eyebrow">YOUR COMPLEX WORKSPACE</p><h1>Staff workspace</h1><p>Manage bookings and facilities in your assigned complex.</p></section>
+    <div class="account-panel"><p class="account-status" id="staff-loading" role="status">Checking staff access…</p>
+      <section id="staff-login-view" hidden><h2>Staff sign in</h2><p class="account-lead">Use the account assigned by your administrator.</p><p class="form-message" id="staff-login-message" role="alert" hidden></p>
+        <form id="staff-login-form"><fieldset><label for="staff-email">Email address</label><input id="staff-email" type="email" name="email" maxlength="254" autocomplete="username" required><label for="staff-password">Password</label><div class="password-field"><input id="staff-password" name="password" type="password" autocomplete="current-password" maxlength="128" required><button id="staff-password-toggle" type="button" aria-label="Show staff password" aria-pressed="false">Show</button></div><button class="primary-button form-submit" type="submit">Sign in to staff workspace</button></fieldset></form>
+      </section>
+      <section id="staff-portal-view" hidden><span class="role-badge">Staff</span><h2 id="staff-welcome"></h2><h3>My complexes</h3><div id="assigned-complexes"></div><p class="form-message" id="staff-portal-message" role="status" hidden></p><button class="text-link" id="staff-sign-out" type="button">Sign out</button></section>
+    </div>
+  </main>
+</body></html>

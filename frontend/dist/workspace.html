@@ -1,12 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script src="assets/theme.js"></script>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#10140f">
   <title>Your complex — OmniSport Digitale</title>
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/staff.css">
   <script type="module" src="assets/workspace.js"></script>
+  <link rel="stylesheet" href="assets/comfort.css">
 </head>
-<body class="directory">
+<body class="directory staff-ui">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><a class="brand" href="./" aria-label="OmniSport Digitale home"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a><nav class="header-nav" aria-label="Main navigation"><a href="account.html">My account</a></nav></header>
   <main class="directory-main" id="main">
@@ -15,9 +18,10 @@
     <section id="workspace-view" hidden>
       <span class="role-badge" id="workspace-role"></span>
       <h1 class="complex-title" id="workspace-name"></h1><p class="complex-location" id="workspace-city"></p>
-      <p class="catalog-note" id="workspace-note">Your facilities are listed below.</p>
-      <div class="facilities-heading"><h2>Your sports &amp; facilities</h2><a class="primary-button" id="add-facility" hidden>Add facility</a></div><div class="workspace-sports" id="workspace-facilities"></div>
-      <section class="staff-section" id="workspace-staff" hidden><h2>Assigned staff</h2><div id="workspace-staff-list"></div><p id="staff-load-message" role="status"></p></section>
+      <p class="catalog-note" id="workspace-note">Your facilities are listed below.</p><div class="workspace-actions"><a id="complex-bookings" class="secondary-button">Bookings</a><a id="complex-notifications" class="secondary-button">Inbox <span id="notifications-count" class="notification-count" hidden></span></a></div>
+      <details open class="staff-section" id="workspace-staff" hidden><summary>Assigned staff</summary><div id="workspace-staff-list"></div><p id="staff-load-message" role="status"></p></details>
+      <div class="facilities-heading"><h2>Sports &amp; facilities</h2><a class="primary-button" id="add-facility" hidden>Add facility</a></div><div class="sport-filters" id="workspace-sport-filters" role="group" aria-label="Filter facilities by sport"></div><div class="workspace-sports" id="workspace-facilities"></div>
+
     </section>
     <section class="empty-directory" id="workspace-error" hidden><h1 id="workspace-error-title">We couldn’t load this workspace.</h1><p id="workspace-error-message"></p><button class="text-link message-action" id="workspace-retry">Try again</button><a class="text-link" href="account.html">Go to my account</a></section>
   </main>

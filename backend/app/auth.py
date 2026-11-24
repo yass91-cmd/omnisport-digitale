@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_va
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from .contact import normalize_phone
 from .models import Complex, StaffAssignment, User
 from .security import (
     CsrfIdentity,
@@ -54,6 +55,9 @@ class LoginInput(BaseModel):
 
 class RegisterInput(LoginInput, NameInput):
     password: Password
+    client_role: Literal["player", "coach"] = "player"
+    phone: str | None = None
+    _phone = field_validator("phone", mode="before")(normalize_phone)
 
 
 class StaffRead(BaseModel):
@@ -67,6 +71,7 @@ class AccountRead(BaseModel):
     id: UUID
     name: str
     email: str
+    phone: str | None
     client_role: Literal["player", "coach"]
     staff_assignments: list[StaffRead]
     csrf_token: str
@@ -88,6 +93,7 @@ def account(session: Database, user: User, token: str) -> AccountRead:
         name=user.name,
         email=user.email,
         client_role=user.client_role,
+        phone=user.phone,
         staff_assignments=[
             StaffRead(
                 complex_id=item.complex_id,
@@ -108,7 +114,8 @@ def register(data: RegisterInput, request: Request, response: Response, session:
         name=data.name,
         email=str(data.email),
         password_hash=passwords.hash(data.password.get_secret_value()),
-        client_role="player",
+        client_role=data.client_role,
+        phone=data.phone,
         created_at=utcnow(),
     )
     session.add(user)
@@ -121,8 +128,7 @@ def register(data: RegisterInput, request: Request, response: Response, session:
     return account(session, user, csrf)
 
 
-@router.post("/login", response_model=AccountRead)
-def login(data: LoginInput, request: Request, response: Response, session: Database):
+def verified_user(data: LoginInput, request: Request, session: Database):
     consume_attempts(session, request, str(data.email))
     user = session.scalar(select(User).where(User.email == str(data.email)))
     valid = password_matches(
@@ -132,8 +138,33 @@ def login(data: LoginInput, request: Request, response: Response, session: Datab
         raise HTTPException(401, "Email or password is incorrect.")
     if passwords.check_needs_rehash(user.password_hash):
         user.password_hash = passwords.hash(data.password.get_secret_value())
+    return user
+
+
+@router.post("/login", response_model=AccountRead)
+def login(data: LoginInput, request: Request, response: Response, session: Database):
+    user = verified_user(data, request, session)
     csrf = create_session(session, request, response, user)
     return account(session, user, csrf)
+
+
+@staff_router.post("/auth/login", response_model=AccountRead)
+def staff_login(data: LoginInput, request: Request, response: Response, session: Database):
+    user = verified_user(data, request, session)
+    if not account(session, user, "").staff_assignments:
+        raise HTTPException(
+            403, "Staff access has not been assigned to this account. Contact your administrator."
+        )
+    csrf = create_session(session, request, response, user)
+    return account(session, user, csrf)
+
+
+@staff_router.get("/me", response_model=AccountRead)
+def staff_me(identity: CurrentIdentity, session: Database):
+    data = account(session, identity.user, csrf_token(identity.token))
+    if not data.staff_assignments:
+        raise HTTPException(403, "Staff access has not been assigned to this account.")
+    return data
 
 
 @router.get("/me", response_model=AccountRead)
@@ -149,13 +180,6 @@ def session_status(request: Request, session: Database):
         if error.status_code == 401:
             return None
         raise
-    return account(session, identity.user, csrf_token(identity.token))
-
-
-@router.patch("/me", response_model=AccountRead)
-def update_profile(data: NameInput, identity: CsrfIdentity, session: Database):
-    identity.user.name = data.name
-    session.commit()
     return account(session, identity.user, csrf_token(identity.token))
 
 

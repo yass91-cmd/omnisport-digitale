@@ -24,7 +24,7 @@ function reflectSelection() {
 }
 
 function card(complex) {
-  const article = element("article", "complex-card");
+  const article = element("article", "complex-card clickable-card");
   const art = element("div", "complex-card-art");
   const image = element("img");
   image.src = "assets/complex-art.svg";
@@ -34,15 +34,13 @@ function card(complex) {
   if (complex.is_demo) art.append(element("span", "demo-badge", "Demo complex"));
   const body = element("div", "complex-card-body");
   body.append(element("p", "complex-card-city", complex.city));
-  body.append(element("h2", "", complex.name));
+  const heading=element("h2"),link=element("a","card-link",complex.name);
+  link.href=`complex.html?id=${encodeURIComponent(complex.id)}`;link.setAttribute("aria-label",`View facilities at ${complex.name}`);heading.append(link);body.append(heading);
   body.append(element("p", "complex-card-description", complex.description));
   body.append(sportLabels(complex.sports));
   const footer = element("div", "complex-card-footer");
   footer.append(element("span", "facility-count", `${complex.facility_count} ${complex.facility_count === 1 ? "facility" : "facilities"}`));
-  const link = element("a", "primary-button", "View facilities");
-  link.href = `complex.html?id=${encodeURIComponent(complex.id)}`;
-  link.setAttribute("aria-label", `View facilities at ${complex.name}`);
-  footer.append(link);
+  const cue=element("span","primary-button card-cue","View facilities");cue.setAttribute("aria-hidden","true");footer.append(cue);
   body.append(footer);
   article.append(art, body);
   return article;

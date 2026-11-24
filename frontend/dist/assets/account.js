@@ -1,9 +1,11 @@
 import { accountRequest } from "./auth-api.js";
-import { element } from "./catalog-ui.js";
+import { safeReturn } from "./account-navigation.js";
+import { showAssignedComplexes } from "./assigned-complexes.js";
 
 const select = selector => document.querySelector(selector);
 let account = null;
 let submitting = false;
+const returnTo = safeReturn(new URLSearchParams(location.search).get("return_to"),location.origin);
 
 function message(target, text, success = false) {
   const node = select(target);
@@ -17,7 +19,7 @@ function setMode(mode) {
   select("#login-form").hidden = register;
   select("#register-form").hidden = !register;
   select("#auth-heading").textContent = register ? "Make yourself at home." : "Welcome back.";
-  select("#auth-lead").textContent = register ? "Create your player account to get started." : "Sign in and find your next place to play.";
+  select("#auth-lead").textContent = register ? "Choose Player or Coach and create your account." : "Sign in and find your next place to play.";
   document.querySelectorAll("[data-auth-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.authMode === mode)));
   message("#auth-message", "");
 }
@@ -26,24 +28,29 @@ function showProfile(data) {
   account = data;
   select("#auth-view").hidden = true;
   select("#profile-view").hidden = false;
-  select("#client-role").textContent = data.client_role === "coach" ? "Coach" : "Player";
-  select("#profile-heading").textContent = `Good to see you, ${data.name}.`;
+  const staff=!!data.staff_assignments.length;
+  const coach=!staff&&data.client_role==="coach";
+  document.body.classList.toggle("staff-ui",staff);
+  document.body.classList.toggle("client-dashboard",!staff);
+  select("#client-role").textContent = staff?data.staff_assignments.some(item=>item.role==="admin")?"Administrator":"Staff":data.client_role === "coach" ? "Coach" : "Player";
+  select("#player-next").hidden=staff;
+  select("#account-heading").textContent=staff?"Your staff workspace":coach?"Coach space":"Player space";
+  select("#account-eyebrow").textContent=staff?"STAFF ACCOUNT":"ONE ACCOUNT. MORE WAYS TO PLAY.";
+  select("#account-intro-note").textContent=staff?"Bookings, facilities and notifications in one place.":"Find a facility or follow your bookings.";
+  select("#profile-policy").hidden=true;
+  select("#profile-heading").textContent = staff?`Good to see you, ${data.name}.`:data.name;
   select("#profile-email").textContent = data.email;
-  select("#profile-name").value = data.name;
-  select("#staff-links").replaceChildren(...data.staff_assignments.map(assignment => {
-    const link = element("a", "staff-link");
-    link.href = `workspace.html?id=${encodeURIComponent(assignment.complex_id)}`;
-    link.append(element("strong", "", assignment.complex_name));
-    link.append(element("span", "", `${assignment.city} · ${assignment.role === "admin" ? "Administrator" : "Employee"}`));
-    return link;
-  }));
+  showAssignedComplexes(select("#staff-links"), data.staff_assignments);
   select("#staff-section").hidden = !data.staff_assignments.length;
 }
 
 function showLogin() {
   account = null;
+  document.body.classList.remove("staff-ui","client-dashboard");
+  select("#account-heading").textContent="Your account";
+  select("#account-eyebrow").textContent="ONE ACCOUNT. MORE WAYS TO PLAY.";
+  select("#account-intro-note").textContent="Your next game starts with a place to call yours.";
   select("#profile-view").hidden = true;
-  select("#profile-form").reset();
   select("#profile-email").textContent = "";
   select("#profile-heading").textContent = "";
   select("#staff-links").replaceChildren();
@@ -57,6 +64,7 @@ async function initialize() {
   select("#account-error").hidden = true;
   try {
     const data = await accountRequest("/api/v1/auth/session");
+    if (data && returnTo) {location.replace(returnTo);return;}
     if (data) showProfile(data);
     else { showLogin(); setMode(new URLSearchParams(location.search).get("mode") === "register" ? "register" : "login"); }
   } catch {
@@ -88,7 +96,7 @@ for (const mode of ["login", "register"]) {
       return;
     }
     const body = { email: fields.get("email"), password: fields.get("password") };
-    if (mode === "register") body.name = fields.get("name");
+    if (mode === "register") {body.name = fields.get("name");body.client_role = fields.get("client_role");body.phone=fields.get("phone")||null;}
     submitting = true;
     document.querySelectorAll("[data-auth-mode]").forEach(button => { button.disabled = true; });
     form.querySelector("fieldset").disabled = true;
@@ -97,6 +105,7 @@ for (const mode of ["login", "register"]) {
     try {
       const data = await accountRequest(`/api/v1/auth/${mode}`, { method: "POST", body });
       select("#login-form").reset(); select("#register-form").reset();
+      if (returnTo) {location.replace(returnTo);return;}
       showProfile(data);
       select("#profile-heading").setAttribute("tabindex", "-1"); select("#profile-heading").focus();
     } catch (error) { message("#auth-message", error.message); }
@@ -107,22 +116,6 @@ for (const mode of ["login", "register"]) {
     }
   });
 }
-
-select("#profile-form").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (submitting) return;
-  submitting = true;
-  const fieldset = select("#profile-form fieldset");
-  const body = { name: select("#profile-name").value };
-  fieldset.disabled = true;
-  try {
-    showProfile(await accountRequest("/api/v1/auth/me", { method: "PATCH", body, csrfToken: account.csrf_token }));
-    message("#profile-message", "Your name has been saved.", true);
-  } catch (error) {
-    if (error.status === 401) showLogin();
-    message(error.status === 401 ? "#auth-message" : "#profile-message", error.message);
-  } finally { fieldset.disabled = false; submitting = false; }
-});
 
 select("#sign-out").addEventListener("click", async () => {
   if (submitting) return;

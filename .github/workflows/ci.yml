@@ -57,6 +57,8 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           for file in frontend/dist/assets/*.js; do node --check "$file"; done
+      - name: Test browser business rules
+        run: node --test frontend/tests/*.test.js
       - name: Build release image
         run: docker build --target runtime -t omnisport-ci .
       - name: Start release image
