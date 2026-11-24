@@ -2,7 +2,7 @@ export function safeReturn(value, origin, staff = false) {
   if (!value) return null;
   try {
     const url = new URL(value,origin);
-    const allowed = ["/availability.html","/bookings.html"];
+    const allowed = ["/availability.html","/bookings.html","/teams.html","/team-inbox.html"];
     if (staff) allowed.push("/workspace.html","/staff-bookings.html","/closures.html","/facility.html","/notifications.html");
     return url.origin === origin && !url.username && !url.password && allowed.includes(url.pathname) ? `${url.pathname}${url.search}` : null;
   } catch { return null; }

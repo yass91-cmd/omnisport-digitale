@@ -24,6 +24,7 @@ function render(booking) {
   const sport = facilitySports.get(booking.facility_id), main = element("div", "booking-main");
   if (staff && sport) { applySport(row, sport); main.append(sportBadge(sport)); }
   main.append(element("h2", "", booking.facility_name));
+  if(booking.team_name)main.append(element("p","field-help",`Team: ${booking.team_name}`));
   if (!staff) main.append(element("p", "field-help", booking.complex_name));
   const finish = booking.starts_at.slice(0,10) === booking.ends_at.slice(0,10) ? booking.ends_at.slice(11,16) : localDateTime(booking.ends_at);
   main.append(element("p", "booking-time", `${localDateTime(booking.starts_at)}–${finish} · ${booking.minutes} min`));

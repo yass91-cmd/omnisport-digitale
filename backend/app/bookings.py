@@ -14,7 +14,16 @@ from sqlalchemy.exc import IntegrityError
 from .auth import ComplexAssignment
 from .booking_state import history_status
 from .contact import name_key, normalize_phone
-from .models import Facility, FacilityClosure, FacilityTariff, OpeningHour, Reservation, User
+from .models import (
+    Facility,
+    FacilityClosure,
+    FacilityTariff,
+    OpeningHour,
+    Reservation,
+    Team,
+    TeamBooking,
+    User,
+)
 from .notifications import notify_client
 from .pricing import business_zone, calculate_price
 from .scheduling import LOCAL_DATETIME, bump_schedule, interval_is_open, local_instant, zone_for
@@ -36,6 +45,7 @@ class BookingInput(BaseModel):
     starts_local: Annotated[str, Field(pattern=LOCAL_DATETIME)]
     minutes: Literal[60, 90, 120]
     phone: str | None = None
+    team_id: UUID | None = None
     _phone = field_validator("phone", mode="before")(normalize_phone)
 
 
@@ -58,6 +68,8 @@ class CancelInput(BaseModel):
 class BookingRead(BaseModel):
     id: UUID
     reference: str
+    team_id: UUID | None
+    team_name: str | None
     facility_id: UUID
     facility_name: str
     complex_id: UUID
@@ -96,6 +108,8 @@ def booking_read(row):
     return BookingRead(
         id=row.id,
         reference=row.reference,
+        team_id=row.team_booking.team_id if row.team_booking else None,
+        team_name=row.team_booking.team_name if row.team_booking else None,
         facility_id=row.facility_id,
         facility_name=row.facility.name,
         complex_id=row.facility.complex_id,
@@ -157,6 +171,19 @@ def claim(
     )
     if facility is None or not facility.active or not facility.complex.active:
         raise HTTPException(404, "This facility is not open for reservations.")
+    team = None
+    if data.team_id:
+        team = session.get(Team, data.team_id)
+        actor = session.get(User, actor_id)
+        if (
+            source != "online"
+            or actor.client_role != "coach"
+            or team is None
+            or team.coach_id != actor_id
+        ):
+            raise HTTPException(403, "Only the responsible coach can book for this team.")
+        if team.sport_id != facility.sport_id:
+            raise HTTPException(422, "Choose a facility for your team's sport.")
     start = local_instant(data.starts_local, facility.complex.timezone)
     if start.year < 1000:
         raise HTTPException(422, "Choose a future date.")
@@ -216,6 +243,7 @@ def claim(
             previous.source,
             previous.client_name,
             previous.client_phone,
+            previous.team_booking.team_id if previous.team_booking else None,
         ) != (
             facility_id,
             client_id,
@@ -225,6 +253,7 @@ def claim(
             source,
             client_name,
             client_phone,
+            data.team_id,
         ):
             raise HTTPException(
                 409, "This booking request was already used for different details."
@@ -291,6 +320,8 @@ def claim(
         row.weekend_applied = price.weekend_applied
         row.evening_applied = price.evening_applied
         bump_schedule(session, facility, data.facility_version)
+        if team:
+            session.add(TeamBooking(reservation_id=row.id, team_id=team.id, team_name=team.name))
         session.commit()
     except HTTPException:
         session.rollback()

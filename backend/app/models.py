@@ -300,6 +300,7 @@ class Reservation(Base):
         String(12), default="accepted", server_default="accepted"
     )
     client: Mapped["User | None"] = relationship(foreign_keys=[client_id])
+    team_booking: Mapped["TeamBooking | None"] = relationship()
 
 
 class User(Base):
@@ -331,6 +332,103 @@ class StaffAssignment(Base):
     role: Mapped[str] = mapped_column(String(16))
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     complex: Mapped[Complex] = relationship()
+
+
+class Team(Base):
+    __tablename__ = "teams"
+    __table_args__ = (
+        UniqueConstraint("coach_id", "sport_id", "name", name="uq_teams_coach_sport_name"),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    coach_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    sport_id: Mapped[UUID] = mapped_column(ForeignKey("sports.id"))
+    name: Mapped[str] = mapped_column(String(100))
+    open_to_requests: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    sport: Mapped[Sport] = relationship()
+    coach: Mapped[User] = relationship()
+
+
+class TeamMembership(Base):
+    __tablename__ = "team_memberships"
+    __table_args__ = (
+        UniqueConstraint("player_id", "sport_id", "active_slot", name="uq_membership_active_sport"),
+        CheckConstraint(
+            "(active_slot IS NOT NULL AND active_slot = 1 AND ended_at IS NULL) OR (active_slot IS NULL AND ended_at IS NOT NULL)",
+            name="ck_membership_state",
+        ),
+    )
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    team_id: Mapped[UUID] = mapped_column(ForeignKey("teams.id"), index=True)
+    player_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    sport_id: Mapped[UUID] = mapped_column(ForeignKey("sports.id"))
+    active_slot: Mapped[int | None] = mapped_column(Integer)
+    started_at: Mapped[datetime] = mapped_column(DateTime)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime)
+    team: Mapped[Team] = relationship()
+    player: Mapped[User] = relationship()
+
+
+class RosterIdentityLock(Base):
+    __tablename__ = "roster_identity_locks"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+
+
+class TeamContactMember(Base):
+    __tablename__ = "team_contact_members"
+    __table_args__ = (
+        UniqueConstraint("identity_key", "sport_id", "active_slot", name="uq_contact_member_sport"),
+        CheckConstraint(
+            "(active_slot IS NOT NULL AND active_slot = 1 AND ended_at IS NULL) OR (active_slot IS NULL AND ended_at IS NOT NULL)",
+            name="ck_contact_member_state",
+        ),
+    )
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    team_id: Mapped[UUID] = mapped_column(ForeignKey("teams.id"), index=True)
+    sport_id: Mapped[UUID] = mapped_column(ForeignKey("sports.id"))
+    identity_key: Mapped[str] = mapped_column(String(64))
+    name: Mapped[str] = mapped_column(String(100))
+    phone: Mapped[str] = mapped_column(String(20))
+    email: Mapped[str | None] = mapped_column(String(254))
+    active_slot: Mapped[int | None] = mapped_column(Integer)
+    started_at: Mapped[datetime] = mapped_column(DateTime)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime)
+    team: Mapped[Team] = relationship()
+
+
+class TeamBooking(Base):
+    __tablename__ = "team_bookings"
+    reservation_id: Mapped[UUID] = mapped_column(ForeignKey("reservations.id"), primary_key=True)
+    team_id: Mapped[UUID] = mapped_column(ForeignKey("teams.id"), index=True)
+    team_name: Mapped[str] = mapped_column(String(100))
+
+
+class TeamRequest(Base):
+    __tablename__ = "team_requests"
+    __table_args__ = (
+        UniqueConstraint("team_id", "player_id", "pending_slot", name="uq_team_request_pending"),
+        CheckConstraint("kind IN ('join', 'invite')", name="ck_team_request_kind"),
+        CheckConstraint(
+            "status IN ('pending', 'accepted', 'declined', 'withdrawn')",
+            name="ck_team_request_status",
+        ),
+        CheckConstraint(
+            "(status = 'pending' AND pending_slot IS NOT NULL AND pending_slot = 1 AND decided_at IS NULL) OR (status <> 'pending' AND pending_slot IS NULL AND decided_at IS NOT NULL)",
+            name="ck_team_request_state",
+        ),
+    )
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    team_id: Mapped[UUID] = mapped_column(ForeignKey("teams.id"), index=True)
+    player_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(8))
+    status: Mapped[str] = mapped_column(String(12), default="pending")
+    pending_slot: Mapped[int | None] = mapped_column(Integer, default=1)
+    previous_membership_id: Mapped[UUID | None] = mapped_column(ForeignKey("team_memberships.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime)
+    team: Mapped[Team] = relationship()
+    player: Mapped[User] = relationship()
 
 
 class LoginSession(Base):

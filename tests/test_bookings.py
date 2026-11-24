@@ -883,16 +883,18 @@ def test_acceptance_requires_current_version_and_assignment(client, booking_setu
 
 
 def test_acceptance_migration_refuses_to_discard_waiting_requests(client, session, booking_setup):
-    from alembic import command
-    from alembic.config import Config
+    from importlib import import_module
 
-    from backend.app.config import ROOT
+    from alembic.migration import MigrationContext
+    from alembic.operations import Operations
 
     booking = reserve(client, booking_setup).json()
-    config = Config(str(ROOT / "alembic.ini"))
-    config.attributes["connection"] = session.connection()
-    with pytest.raises(RuntimeError, match="Acceptance history exists"):
-        command.downgrade(config, "0010_booking_arrival")
+    # Exercise this migration's guard directly. Traversing newer migrations here
+    # would run MySQL DDL and implicitly commit this fixture's isolated data.
+    migration = import_module("migrations.versions.0011_booking_acceptance")
+    with Operations.context(MigrationContext.configure(session.connection())):
+        with pytest.raises(RuntimeError, match="Acceptance history exists"):
+            migration.downgrade()
     assert session.get(Reservation, UUID(booking["id"])).approval_status == "awaiting"
 
 
@@ -948,3 +950,51 @@ def test_inbox_scope_and_revocation_are_immediate(client, session, booking_setup
     session.commit()
     assert client.get(path).status_code == 403
     assert client.get("/api/v1/staff/notifications/summary").status_code == 403
+
+
+def test_team_booking_enforces_coach_sport_and_retry_identity(client, session, booking_setup):
+    from backend.app.models import Team, TeamBooking
+    from backend.app.security import utcnow
+
+    setup = booking_setup
+    coach = register(client, "team-coach@example.com", "coach")
+    team = Team(
+        coach_id=UUID(coach["id"]), sport_id=demo_id("tennis"), name="Rackets", created_at=utcnow()
+    )
+    wrong_sport = Team(
+        coach_id=UUID(coach["id"]),
+        sport_id=demo_id("football"),
+        name="Football",
+        created_at=utcnow(),
+    )
+    session.add_all([team, wrong_sport])
+    session.commit()
+    body = {**payload(), "team_id": str(wrong_sport.id)}
+    assert (
+        client.post(setup[4] + "/reservations", headers=headers(coach), json=body).status_code
+        == 422
+    )
+    body["team_id"] = str(team.id)
+    response = client.post(setup[4] + "/reservations", headers=headers(coach), json=body)
+    assert response.status_code == 201, response.text
+    booking = response.json()
+    assert booking["team_name"] == "Rackets" and booking["approval_status"] == "awaiting"
+    assert session.get(TeamBooking, UUID(booking["id"])).team_id == team.id
+    retry = client.post(setup[4] + "/reservations", headers=headers(coach), json=body)
+    assert retry.status_code == 200 and retry.json()["id"] == booking["id"]
+    body["team_id"] = None
+    assert (
+        client.post(setup[4] + "/reservations", headers=headers(coach), json=body).status_code
+        == 409
+    )
+    other = register(client, "other-team-coach@example.com", "coach")
+    body = {**payload(version=2, start="2026-11-23T19:00"), "team_id": str(team.id)}
+    assert (
+        client.post(setup[4] + "/reservations", headers=headers(other), json=body).status_code
+        == 403
+    )
+    player = register(client, "team-player@example.com")
+    assert (
+        client.post(setup[4] + "/reservations", headers=headers(player), json=body).status_code
+        == 403
+    )

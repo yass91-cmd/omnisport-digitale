@@ -24,6 +24,7 @@ from .database import make_engine
 from .facilities import router as facilities_router
 from .notifications import router as notifications_router
 from .pricing import router as pricing_router
+from .teams import router as teams_router
 
 logger = logging.getLogger(__name__)
 PUBLIC_SUFFIXES = {
@@ -60,6 +61,8 @@ class PublicFiles(StaticFiles):
                 "bookings.html",
                 "staff-bookings.html",
                 "notifications.html",
+                "teams.html",
+                "team-inbox.html",
             }
             else "no-cache"
         )
@@ -78,7 +81,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
         yield
         engine.dispose()
 
-    app = FastAPI(title="OmniSport Digitale API", version="0.11.2", lifespan=lifespan)
+    app = FastAPI(title="OmniSport Digitale API", version="0.12.1", lifespan=lifespan)
     app.state.settings = settings
     app.state.engine = engine
     app.state.sessions = sessionmaker(engine, expire_on_commit=False)
@@ -133,5 +136,6 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(availability_router)
     app.include_router(bookings_router)
     app.include_router(notifications_router)
+    app.include_router(teams_router)
     app.mount("/", PublicFiles(directory=ROOT / "frontend" / "dist", html=True), name="website")
     return app

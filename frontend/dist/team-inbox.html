@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script src="assets/theme.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team inbox — OmniSport Digitale</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/staff.css">
+  <link rel="stylesheet" href="assets/comfort.css">
+  <link rel="stylesheet" href="assets/teams.css?v=2">
+  <script type="module" src="assets/team-inbox.js?v=1"></script>
+</head>
+<body class="directory">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="./"><img src="assets/mark.svg" width="42" height="42" alt=""><span>OMNISPORT<span class="brand-sub">DIGITALE</span></span></a>
+    <nav class="header-nav" aria-label="Main navigation"><a href="teams.html">My teams</a><a href="bookings.html">My bookings</a><a href="account.html">My account</a></nav>
+  </header>
+  <main class="directory-main teams-page" id="main">
+    <a class="text-button" href="teams.html">← My teams</a>
+    <div class="team-page-head detail-head"><div><p class="eyebrow">Team space</p><h1>Inbox</h1></div></div>
+    <p id="inbox-status" role="status">Loading requests…</p>
+    <a id="inbox-login" href="account.html?return_to=%2Fteam-inbox.html" hidden>Sign in to see your team inbox</a>
+    <section id="inbox-content" hidden aria-label="Team requests">
+      <div id="team-requests" class="team-list"></div>
+      <nav class="settings-actions" aria-label="Inbox pages"><button id="inbox-previous" class="secondary-button" hidden>Previous</button><button id="inbox-next" class="secondary-button" hidden>Next</button></nav>
+    </section>
+  </main>
+</body>
+</html>

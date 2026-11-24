@@ -6,6 +6,7 @@ const origin = "http://127.0.0.1:8000";
 test("client sign-in retains the selected booking page and date",() => {
   assert.equal(safeReturn("/availability.html?day=2026-11-23&minutes=90",origin),"/availability.html?day=2026-11-23&minutes=90");
   assert.equal(safeReturn("bookings.html",origin),"/bookings.html");
+  assert.equal(safeReturn("/team-inbox.html",origin),"/team-inbox.html");
 });
 test("return links cannot leave this site or target an API",() => {
   for (const value of ["https://evil.example/availability.html","//evil.example/bookings.html","http://user:secret@127.0.0.1:8000/bookings.html","/api/v1/auth/logout","/unknown.html","",null,"http://["]) assert.equal(safeReturn(value,origin,true),null,value);

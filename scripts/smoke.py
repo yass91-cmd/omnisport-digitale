@@ -24,6 +24,7 @@ def main():
         "staff-bookings",
         "availability",
         "notifications",
+        "teams",
     ]:
         with urlopen(args.url + f"/{page}.html", timeout=10) as response:
             assert response.status == 200

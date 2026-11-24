@@ -33,6 +33,7 @@
       <p id="booking-message" role="status" class="catalog-note" hidden></p>
       <ol id="daily-timetable" class="daily-timetable" aria-label="Available booking periods"></ol>
       <form id="reservation-form" class="reservation-choice" hidden><h3>Your reservation</h3><fieldset id="reservation-fields">
+        <div id="team-choice" hidden><label for="reservation-team">Booking for</label><select id="reservation-team"><option value="">Myself</option></select><p class="field-help">Choose one of your teams in this sport, or book for yourself.</p></div>
         <label for="reservation-start">Start time</label><select id="reservation-start" required></select>
         <p id="reservation-summary" class="reservation-total" role="status"></p>
         <div id="reservation-contact" class="settings-grid"><div><label for="client-name">Full name</label><input id="client-name" maxlength="100" autocomplete="off"></div><div><label for="client-phone">Phone number</label><input id="client-phone" type="tel" maxlength="40" placeholder="0612345678" autocomplete="tel"></div></div>

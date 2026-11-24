@@ -10,6 +10,7 @@ import { rememberBookingReceipt } from "./booking-receipt.js";
 const select=value=>document.querySelector(value), params=new URLSearchParams(location.search);
 const complexId=params.get("complex_id"),facilityId=params.get("facility_id"),staff=params.get("staff")==="1";
 const base=`/api/v1/${staff?"staff/":""}complexes/${encodeURIComponent(complexId)}/facilities/${encodeURIComponent(facilityId)}`;
+let coachTeams=[];
 let account=null,schedule=null,request=0,busy=false,period=null,intent=null,navigating=false;
 document.body.classList.add(staff?"staff-ui":"sport-ui");
 if(staff){select("#schedule-eyebrow").textContent="STAFF WORKSPACE";select("#schedule-heading").textContent="Book a time";}
@@ -64,6 +65,11 @@ async function load(initial=false,findNext=false) {
     const query=new URLSearchParams(),day=initial?params.get("day"):select("#slot-day").value,minutes=initial?params.get("minutes"):select("#slot-duration").value;
     if(day)query.set("day",day);if(minutes)query.set("minutes",minutes);if(findNext||(initial&&!day))query.set("find_next","true");
     const data=await accountRequest(`${base}/availability?${query}`);if(current!==request)return;schedule=data;
+    const selectedTeam=select("#reservation-team").value;
+    const matchingTeams=coachTeams.filter(team=>team.sport.toLowerCase()===data.sport.toLowerCase());
+    select("#team-choice").hidden=staff||!matchingTeams.length;
+    select("#reservation-team").replaceChildren(Object.assign(element("option","","Myself"),{value:""}),...matchingTeams.map(team=>Object.assign(element("option","",team.name),{value:team.id})));
+    if(matchingTeams.some(team=>team.id===selectedTeam))select("#reservation-team").value=selectedTeam;
     document.title=`${data.facility_name} booking — OmniSport Digitale`;
     select("#schedule-context").textContent=`${data.facility_name} · ${data.complex_name} · ${data.sport}`;
     applySport(document.body,data.sport);select("#schedule-sport").replaceChildren(sportBadge(data.sport));
@@ -109,6 +115,7 @@ select("#reservation-form").addEventListener("submit",async event=>{
   event.preventDefault();if(busy)return;if(!account){location.assign(loginLink());return;}
   const slot=schedule.slots.find(item=>item.starts_at.slice(0,16)===select("#reservation-start").value);if(!slot)return;
   const details={facility_version:schedule.facility_version,starts_local:slot.starts_at.slice(0,16),minutes:schedule.minutes,...(staff?{client_name:select("#client-name").value,client_phone:select("#client-phone").value}:{phone:select("#client-phone").value})};
+  if(!staff&&select("#reservation-team").value)details.team_id=select("#reservation-team").value;
   const key=JSON.stringify(details);if(intent?.key!==key)intent={key,id:crypto.randomUUID()};
   busy=true;select("#reservation-fields").disabled=true;select("#slot-fields").disabled=true;const message=select("#booking-message");message.hidden=false;message.textContent="Saving reservation…";
   select("#booking-history").textContent=staff?"View booking history":"My bookings";select("#booking-history").href=bookingHistoryPath(staff,complexId,"pending");
@@ -124,7 +131,7 @@ select("#reservation-form").addEventListener("submit",async event=>{
   }catch(error){if(error.status===401){location.assign(loginLink());return;}message.textContent=error.status?error.message:"We couldn’t verify saving. Check your booking history before retrying.";if(!error.status)select("#booking-history").hidden=false;if(error.status===409)await load();}
   finally{if(!navigating){busy=false;select("#reservation-fields").disabled=false;select("#slot-fields").disabled=false;updateChoice();}}
 });
-async function start(){try{account=await accountRequest(staff?"/api/v1/staff/me":"/api/v1/auth/session");}catch{account=null;}await load(true);}
+async function start(){coachTeams=[];try{account=await accountRequest(staff?"/api/v1/staff/me":"/api/v1/auth/session");if(!staff&&account?.client_role==="coach"){let offset=0;while(true){const page=await accountRequest(`/api/v1/teams?mine=true&offset=${offset}`);coachTeams.push(...page.items);if(!page.has_more)break;offset+=50;}}}catch{account=null;}await load(true);}
 window.addEventListener("pageshow",event=>{
   if(!event.persisted)return;
   busy=false;intent=null;navigating=false;
