@@ -581,7 +581,7 @@ def test_booking_event_round_trips_through_kafka_and_consumer_is_idempotent(
         partition = TopicPartition(topic, record.partition)
         assert consumer.committed(partition) is None
         consumer.commit()
-        assert consumer.committed(partition).offset == record.offset + 1
+        assert consumer.committed(partition) == record.offset + 1
     finally:
         if consumer is not None:
             consumer.close(autocommit=False)
