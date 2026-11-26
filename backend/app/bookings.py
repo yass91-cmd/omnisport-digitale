@@ -1,12 +1,13 @@
 """Atomic online/staff bookings with saved prices and actor-scoped retries."""
 
+import json
 import secrets
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import and_, func, select
 from sqlalchemy.exc import IntegrityError
@@ -19,6 +20,7 @@ from .models import (
     FacilityClosure,
     FacilityTariff,
     OpeningHour,
+    OutboxEvent,
     Reservation,
     Team,
     TeamBooking,
@@ -159,6 +161,7 @@ def claim(
     *,
     client_name,
     client_phone,
+    event_topic=None,
 ):
     # Every schedule writer takes this same facility lock before checking current rows.
     facility = session.scalar(
@@ -322,6 +325,28 @@ def claim(
         bump_schedule(session, facility, data.facility_version)
         if team:
             session.add(TeamBooking(reservation_id=row.id, team_id=team.id, team_name=team.name))
+        if source == "online" and event_topic:
+            event_id = uuid4()
+            payload = {
+                "event_id": str(event_id),
+                "event_type": "BookingRequested",
+                "schema_version": 1,
+                "occurred_at": row.created_at.isoformat(),
+                "aggregate_id": str(row.id),
+                "data": {"reservation_id": str(row.id)},
+            }
+            session.add(
+                OutboxEvent(
+                    id=event_id,
+                    event_type="BookingRequested",
+                    schema_version=1,
+                    aggregate_id=row.id,
+                    topic=event_topic,
+                    message_key=str(row.id),
+                    payload=json.dumps(payload, separators=(",", ":"), sort_keys=True),
+                    created_at=row.created_at,
+                )
+            )
         session.commit()
     except HTTPException:
         session.rollback()
@@ -336,6 +361,7 @@ def claim(
     dependencies=[Depends(same_origin_write)],
 )
 def reserve_online(
+    request: Request,
     complex_id: UUID,
     facility_id: UUID,
     data: BookingInput,
@@ -359,6 +385,7 @@ def reserve_online(
         response,
         client_name=identity.user.name,
         client_phone=phone,
+        event_topic=request.app.state.settings.kafka_booking_topic,
     )
 
 

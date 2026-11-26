@@ -80,6 +80,24 @@ class ClientNotification(Base):
     reservation: Mapped["Reservation"] = relationship()
 
 
+class OutboxEvent(Base):
+    __tablename__ = "outbox_events"
+    __table_args__ = (
+        CheckConstraint("schema_version >= 1", name="ck_outbox_events_schema_version"),
+        Index("ix_outbox_events_pending", "published_at", "created_at", "id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    event_type: Mapped[str] = mapped_column(String(80))
+    schema_version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    aggregate_id: Mapped[UUID] = mapped_column(Uuid)
+    topic: Mapped[str] = mapped_column(String(249))
+    message_key: Mapped[str] = mapped_column(String(100))
+    payload: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
 class MaintenanceChange(Base):
     __tablename__ = "maintenance_changes"
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)

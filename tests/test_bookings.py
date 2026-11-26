@@ -1,3 +1,6 @@
+import json
+import os
+import time
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 from zlib import crc32
@@ -9,6 +12,7 @@ from backend.app.models import (
     ClientNotification,
     Facility,
     LoginSession,
+    OutboxEvent,
     Reservation,
     StaffAssignment,
     StaffNotification,
@@ -480,6 +484,110 @@ def test_booking_requests_stay_in_history_without_creating_inbox_alerts(
     history = client.get(f"/api/v1/staff/complexes/{demo_id('atlas')}/reservations").json()
     assert history["items"][0]["id"] == booking["id"]
     assert history["items"][0]["can_accept"] is True
+
+
+def test_online_booking_saves_versioned_outbox_event_atomically(client, session, booking_setup):
+    booking = reserve(client, booking_setup).json()
+    event = session.scalar(
+        select(OutboxEvent).where(OutboxEvent.aggregate_id == UUID(booking["id"]))
+    )
+
+    assert event is not None
+    assert event.event_type == "BookingRequested"
+    assert event.schema_version == 1
+    assert event.topic == "booking-events.v1"
+    assert event.message_key == booking["id"]
+    assert event.published_at is None
+    payload = json.loads(event.payload)
+    assert payload["event_id"] == str(event.id)
+    assert payload["event_type"] == event.event_type
+    assert payload["schema_version"] == event.schema_version
+    assert payload["aggregate_id"] == booking["id"]
+    assert payload["data"]["reservation_id"] == booking["id"]
+
+
+def test_booking_event_round_trips_through_kafka_and_consumer_is_idempotent(
+    client, session, booking_setup
+):
+    bootstrap_servers = os.environ.get("OMNI_TEST_KAFKA_BOOTSTRAP_SERVERS")
+    if not bootstrap_servers:
+        if os.environ.get("CI") == "true":
+            pytest.fail(
+                "CI requires OMNI_TEST_KAFKA_BOOTSTRAP_SERVERS for Kafka integration checks"
+            )
+        pytest.skip("Set OMNI_TEST_KAFKA_BOOTSTRAP_SERVERS to run the Kafka integration check")
+
+    kafka = pytest.importorskip("kafka")
+    from kafka.structs import TopicPartition
+
+    topic = f"ci-booking-{uuid4().hex}"
+    client.app.state.settings.kafka_booking_topic = topic
+    servers = bootstrap_servers.split(",")
+    admin = kafka.KafkaAdminClient(bootstrap_servers=servers, request_timeout_ms=10_000)
+    producer = None
+    consumer = None
+    try:
+        admin.create_topics(
+            {topic: {"num_partitions": 1, "replication_factor": 1}},
+            timeout_ms=10_000,
+            wait_for_metadata=True,
+        )
+
+        booking_response = reserve(client, booking_setup)
+        assert booking_response.status_code == 201, booking_response.text
+        booking = booking_response.json()
+        event = session.scalar(
+            select(OutboxEvent).where(OutboxEvent.aggregate_id == UUID(booking["id"]))
+        )
+        assert event is not None and event.published_at is None
+
+        producer = kafka.KafkaProducer(
+            bootstrap_servers=servers,
+            enable_idempotence=True,
+            acks="all",
+            request_timeout_ms=10_000,
+            delivery_timeout_ms=30_000,
+        )
+        from backend.app.event_worker import create_staff_notice, publish_one
+
+        assert publish_one(lambda: session, producer)
+        producer.flush(timeout=10)
+        event = session.scalar(select(OutboxEvent).where(OutboxEvent.id == event.id))
+        assert event.published_at is not None
+
+        consumer = kafka.KafkaConsumer(
+            topic,
+            bootstrap_servers=servers,
+            group_id=f"ci-booking-consumer-{uuid4().hex}",
+            enable_auto_commit=False,
+            auto_offset_reset="earliest",
+            request_timeout_ms=10_000,
+        )
+        record = None
+        deadline = time.monotonic() + 20
+        while record is None and time.monotonic() < deadline:
+            batches = consumer.poll(timeout_ms=1000, max_records=1)
+            record = next((message for messages in batches.values() for message in messages), None)
+        assert record is not None, "Kafka did not deliver the published booking event"
+        assert record.key == booking["id"].encode("utf-8")
+
+        assert create_staff_notice(lambda: session, record.value) is True
+        assert create_staff_notice(lambda: session, record.value) is False
+        notice = session.scalar(
+            select(StaffNotification).where(StaffNotification.reservation_id == UUID(booking["id"]))
+        )
+        assert notice is not None and notice.kind == "booking_requested"
+
+        partition = TopicPartition(topic, record.partition)
+        assert consumer.committed(partition) is None
+        consumer.commit()
+        assert consumer.committed(partition).offset == record.offset + 1
+    finally:
+        if consumer is not None:
+            consumer.close(autocommit=False)
+        if producer is not None:
+            producer.close(timeout=5)
+        admin.close()
 
 
 @pytest.mark.parametrize("kind", ["booking_requested", "booking_confirmed", "time_requested"])
