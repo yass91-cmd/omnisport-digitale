@@ -25,10 +25,12 @@
           <div><label for="closure-start">Closure starts</label><input id="closure-start" type="datetime-local" step="60" required></div>
           <div><label for="closure-end">Closure ends</label><input id="closure-end" type="datetime-local" step="60" required></div>
           <div class="settings-wide"><label for="closure-reason">Reason</label><textarea id="closure-reason" maxlength="500" rows="2" required></textarea><p class="field-help">The reason is visible only to this complex’s administrators.</p></div>
-        </div><button class="primary-button" type="submit">Add closure</button></fieldset></form>
+        </div><button class="primary-button" type="submit">Review affected bookings</button></fieldset></form>
+        <section id="closure-review" hidden><h3>Affected bookings</h3><p>Choose a new time or cancel each booking. Prices stay unchanged. Contact walk-in customers by phone.</p><div id="closure-affected"></div><button id="closure-confirm" class="primary-button" type="button">Confirm closure and changes</button></section>
       </section>
       <p class="form-message" id="closures-message" role="status" hidden></p><button class="secondary-button" id="closures-reload" hidden>Reload saved closures</button>
       <section class="settings-card" aria-labelledby="saved-closures-heading"><h2 id="saved-closures-heading">Upcoming closures</h2><p class="field-help" id="closures-count"></p><div id="closure-list"></div><button class="secondary-button" id="closures-more" hidden>Load more closures</button></section>
+      <section class="settings-card"><h2>Maintenance booking history</h2><div id="maintenance-history"></div></section>
     </div>
   </main>
 </body>

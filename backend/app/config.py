@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     session_idle_minutes: int = Field(default=30, ge=5, le=120)
     login_email_limit: int = Field(default=8, ge=1, le=100)
     login_ip_limit: int = Field(default=40, ge=1, le=500)
+    kafka_bootstrap_servers: str = "kafka:19092"
+    kafka_booking_topic: str = "booking-events.v1"
+    kafka_dead_letter_topic: str = "booking-events.dlq"
 
     @model_validator(mode="after")
     def production_cookies(self):
