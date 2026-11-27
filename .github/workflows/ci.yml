@@ -103,3 +103,29 @@ jobs:
       - name: Stop release image
         if: always()
         run: docker rm -f omnisport-smoke || true
+
+  publish-image:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test-and-package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish release image
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          IMAGE="${IMAGE,,}"
+          docker build --target runtime \
+            --tag "$IMAGE:latest" \
+            --tag "$IMAGE:sha-$GITHUB_SHA" .
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          docker push "$IMAGE:latest"
